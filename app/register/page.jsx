@@ -4,6 +4,7 @@
  import { useRouter } from "next/navigation"
  import toast from "react-hot-toast"
  import { signIn } from "next-auth/react"
+ import Registering from "@/components/loaders/Registering"
 
 
  const RegisterPage = () => {
@@ -99,7 +100,7 @@
                 <button type="submit"
                 className="w-full py-2 bg-[#FE9900] hover:bg-[#e88500] text-white font-semibold rounded-md transition duration-200"
                 disabled={loading}>
-                    {loading ? 'Registering...' : 'Sign Up'}
+                    {loading ? <Registering className="font-bold"/> : 'Sign Up'}
                 </button>
             </form>
 

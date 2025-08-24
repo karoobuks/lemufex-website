@@ -10,7 +10,15 @@ export async function GET(req) {
   }
 
   await connectedDB();
-  const trainee = await Trainee.findOne({ user: session.user._id });
+
+    const userId = session.user._id || session.user.id;
+  if (!userId) {
+    console.log("⚠️ No user ID found in session");
+    return new Response(JSON.stringify({ isTrainee: false }), { status: 400 });
+  }
+
+  const trainee = await Trainee.findOne({ user: userId });
+ 
 
   return new Response(JSON.stringify({ isTrainee: !!trainee }), { status: 200 });
 }

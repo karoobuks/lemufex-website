@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import Logging from "@/components/loaders/Logging";
 
 
 
@@ -48,12 +49,21 @@ const LoginPage = () => {
               callbackUrl,
             });
             // const data = await res.json()
-            if(res.ok){
+
+            if (res.error) {
+      // NextAuth sends "CredentialsSignin" by default on invalid login
+            if (res.error === "CredentialsSignin") {
+              setError("Invalid email or password");
+            } else {
+              setError(res.error);
+            }
+            } else if(res.ok){
                 toast.success('Login Successful')
                 router.refresh()
                  if (res.url) {
                 router.push(res.url);
               }
+              else router.push(callbackUrl);
             }
             
         } catch (error) {
@@ -87,7 +97,7 @@ const LoginPage = () => {
                 type={field === 'password' ? 'password' : 'email'}
                 id={field}
                 placeholder={field === 'email' ? 'you@example.com' : ''}
-                className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
+                className="mt-1 px-4 py-2 w-full border border-gray-300 text-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
                 onChange={handleChange}
                 value={formData[field]}
                 required
@@ -101,7 +111,7 @@ const LoginPage = () => {
             disabled={loading}
             className="w-full py-2 bg-[#FE9900] hover:bg-[#e88500] text-white font-semibold rounded-md transition duration-200"
           >
-            {loading ? 'Logging In...' : 'Log In'}
+            {loading ? <Logging/> : 'Log In'}
           </button>
         </form>
 
@@ -131,6 +141,14 @@ const LoginPage = () => {
             Register
           </span>
         </p>
+
+         <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center">
+              <input type="checkbox" className="mr-2 bg-[#FE9900]" />
+              <span className=" text-gray-900">Remember me</span>
+            </label>
+            <a href="/forgot-password" className="text-[#FE9900] hover:underline">Forgot password?</a>
+          </div>
       </div>
     </div> );
 }

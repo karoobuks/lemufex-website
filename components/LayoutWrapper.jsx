@@ -6,6 +6,7 @@ import Footer from "./Footer"
 import AuthProvider from "./AuthProvider"
 
 
+
 const LayoutWrapper = ({children}) => {
     const pathname = usePathname()
     const noHeaderFooter = ['/login', '/register']

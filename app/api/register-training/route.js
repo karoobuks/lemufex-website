@@ -13,8 +13,14 @@ export async function POST(req) {
         return NextResponse.json({error:'Unauthorized'}, {status:401})
     }
     try {
-    const {fullName, email, trainings, phone, address} = await req.json()
-        const user = await User.findOne({email:session.user.email })
+    const {fullName, email, trainings, phone, address, dob, emergencycontact} = await req.json()
+        // const user = await User.findOne({email:session.user.email })
+
+         const user = await User.findOneAndUpdate(
+    { email: session.user.email },
+    { isTrainee: true },
+    { new: true }
+  );
 
         if(!user){
             return NextResponse.json({error:'User not found'}, {status:404})
@@ -23,15 +29,29 @@ export async function POST(req) {
         const existingTrainee = await Trainee.findOne({user:user._id})
 
         if(existingTrainee){
-            NextResponse.json({error:'Already registered as trainee'}, {status:400})
+          return  NextResponse.json({error:'Already registered as trainee'}, {status:400})
         }
 
+          // Fix: Normalize trainings input
+            let formattedTrainings = [];
+
+            if (typeof trainings === "string") {
+            formattedTrainings.push({ track: trainings });
+            } else if (Array.isArray(trainings)) {
+            formattedTrainings = trainings.map((track) =>
+                typeof track === "string" ? { track } : track
+            );
+            }
+
         const newTrainee = await Trainee.create({
+            user: user._id,
             fullName,
             email,
-            trainings,
+            trainings: formattedTrainings,
             phone,
             address,
+            dob,
+            emergencycontact,
         })
 
         user.isTrainee = true

@@ -1,7 +1,12 @@
 'use client';
 import Link from "next/link";
+import { useSession } from 'next-auth/react';
 
 export default function TraineeSuccessPage() {
+
+   const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+
   return (
     <main className="min-h-screen bg-[#081C3C] flex flex-col items-center justify-center p-6 text-white">
       <div className="bg-[#0D274D] rounded-2xl shadow-lg p-10 max-w-xl w-full text-center">
@@ -20,7 +25,7 @@ export default function TraineeSuccessPage() {
         </div>
 
         <Link
-          href="/dashboard"
+          href={`/dashboard/${userId}`}
           className="inline-block mt-6 px-6 py-3 bg-[#00F49C] text-[#081C3C] font-semibold rounded-lg hover:bg-[#00dd89] transition"
         >
           Go to Dashboard

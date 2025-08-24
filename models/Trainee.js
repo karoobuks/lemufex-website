@@ -25,6 +25,7 @@ const traineeSchema = new mongoose.Schema({
       enrolledAt: {
         type: Date,
         default: Date.now,
+        trim:true,
       },
     },
   ],
@@ -32,7 +33,21 @@ const traineeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  emergencycontact: {
+    type: String,
+    required: true,
+  },
+  dob:{
+    type:Date, 
+    required:true
+  },
   address: String,
+  image: String,
+  course: String,
+  documents: String,
+  level: String,
+  bio: String,
+  
 }, { timestamps: true });
 
 const Trainee = mongoose.models.Trainee || mongoose.model('Trainee', traineeSchema);

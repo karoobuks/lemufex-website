@@ -13,7 +13,7 @@ const Hero = () => {
             Building the Future with <span className="text-[#FE9900]">Precision</span> and <span className="text-[#FE9900]">Excellence</span>
           </h1>
           <p className="text-lg text-gray-300 mb-8">
-            At Lemufex Engineering Group, we specialize in delivering world-class Civil, Structural, and Mechanical engineering services tailored to your needs.
+            At <span className="text-[#FE9900] font-bold">Lemufex Engineering Group</span>, we specialize in delivering world-class Civil, Structural, and Mechanical engineering services tailored to your needs.
           </p>
           <div className="flex gap-4">
             <Link
