@@ -1,9 +1,9 @@
 
-
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import connectedDB from '@/config/database';
 import User from '@/models/User';
+import Trainee from '@/models/Trainee';
 import bcrypt from 'bcryptjs';
 
 export const authOptions = {
@@ -46,7 +46,7 @@ export const authOptions = {
           lastName: user.lastName,
           role: user.role,
           image: user.image,
-          isTrainee: user.isTrainee || false, 
+          isTrainee: user.isTrainee || false,
         };
       }
     }),
@@ -61,12 +61,12 @@ export const authOptions = {
       await connectedDB();
 
       if (account.provider === 'google') {
-        const existingUser = await User.findOne({ email: profile.email });
+        let existingUser = await User.findOne({ email: profile.email });
 
         if (!existingUser) {
-          const [firstName, ...rest] = profile.name.split(' ');
+          const [firstName, ...rest] = profile.name?.split(' ') || ["User"];
 
-          await User.create({
+          const newUser = await User.create({
             email: profile.email,
             firstName,
             lastName: rest.join(' '),
@@ -74,6 +74,16 @@ export const authOptions = {
             role: 'user',
             isTrainee: false, // ✅ default new Google users to not trainee
           });
+          user = newUser;
+        }
+        if(existingUser?.isTrainee){
+           let trainee = await Trainee.findOne({ user: existingUser._id });
+           if(!trainee){
+            trainee = await Trainee.create({
+              user:existingUser._id,
+              trainings:[],
+            })
+           } 
         }
       }
 
@@ -84,19 +94,45 @@ export const authOptions = {
       async jwt({ token, user }) {
     await connectedDB();
     if (user) {
-      token.id = user.id || user._id?.toString();
+      const userId = user.id?.toString() || user._id?.toString();
+
+      token.email = user.email;
+
+      token.id = userId
       token.role = user.role;
-      token.isTrainee = user.isTrainee || false;
+      token.isTrainee = !!user.isTrainee;
       token.firstName = user.firstName;
       token.lastName = user.lastName;
+      
+      if(user.isTrainee){
+        const trainee = await Trainee.findOne({ user: user.id || user._id});
+        token.traineeId = trainee?._id?.toString() || null;
+        token.trainings = trainee?.trainings || [];
+      } else{
+        token.traineeId = null;
+        token.trainings = [];
+      }
     } else {
       const dbUser = await User.findOne({ email: token.email });
+      if(dbUser){
       token.id = dbUser?._id?.toString();
       token.role = dbUser?.role;
-      token.isTrainee = dbUser?.isTrainee || false;
+      token.isTrainee = !!dbUser.isTrainee;
       token.firstName = dbUser?.firstName;
       token.lastName = dbUser?.lastName;
+
+       if(dbUser?.isTrainee) {
+        const trainee = await Trainee.findOne({ user: dbUser._id});
+        token.traineeId = trainee?._id?.toString() || null;
+        token.trainings = trainee?.trainings || []
+    } else {
+      token.traineeId = null;
+      token.trainings = [];
     }
+    }
+  }
+
+   
 
     return token;
   },
@@ -104,10 +140,13 @@ export const authOptions = {
 
     async session({ session, token }) {
       session.user.id = token.id;
+      session.user.email = token.email;
       session.user.role = token.role;
-      session.user.isTrainee = token.isTrainee; 
+      session.user.isTrainee = !!token.isTrainee; 
       session.user.firstName = token.firstName;
       session.user.lastName = token.lastName;
+      session.user.trainings = token.trainings || [];
+      session.user.traineeId = token.traineeId;
       return session;
     },
   },

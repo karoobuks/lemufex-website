@@ -2,24 +2,28 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import electrical from "@/assets/images/electrical-installation.png"
+import HVAC from "@/assets/images/HVAC-system-installation.png"
+import steelFab from "@/assets/images/Structural-Steel-Fabrication.png"
 
 const projects = [
   {
     title: 'Structural Steel Fabrication',
     description: 'Fabrication and installation of structural steel for an industrial plant.',
-    image: '/projects/steel-fabrication.jpg',
+    image: steelFab,
     slug: '/projects/steel-fabrication',
   },
   {
     title: 'Commercial Electrical Installation',
     description: 'Full electrical setup for a 5-storey commercial complex in Lagos.',
-    image: '/projects/electrical-installation.jpg',
-    slug: '/projects/electrical-installation',
+    //image: '/assets/images/electrical-installation.png',
+    image: electrical,
+    slug: '/assets/images/electrical-installation',
   },
   {
     title: 'HVAC System Integration',
     description: 'Integrated energy-efficient HVAC system for a shopping mall.',
-    image: '/projects/hvac-installation.jpg',
+    image: HVAC,
     slug: '/projects/hvac-installation',
   },
 ];

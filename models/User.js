@@ -78,9 +78,6 @@
 
 import { Schema, model, models } from "mongoose";
 
-// ⚠️ bcrypt is imported but unused in your snippet, 
-// keep it only if you're doing pre-save hashing later
-// import bcrypt from 'bcryptjs';
 
 const UserSchema = new Schema(
   {

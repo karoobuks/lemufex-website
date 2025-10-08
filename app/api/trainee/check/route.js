@@ -6,7 +6,7 @@ import Trainee from "@/models/Trainee";
 export async function GET(req) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return new Response(JSON.stringify({ isTrainee: false }), { status: 401 });
+    return new Response(JSON.stringify({ exists: false }), { status: 401 });
   }
 
   await connectedDB();
@@ -14,11 +14,11 @@ export async function GET(req) {
     const userId = session.user._id || session.user.id;
   if (!userId) {
     console.log("⚠️ No user ID found in session");
-    return new Response(JSON.stringify({ isTrainee: false }), { status: 400 });
+    return new Response(JSON.stringify({ exists: false }), { status: 400 });
   }
 
-  const trainee = await Trainee.findOne({ user: userId });
+  const trainee = await Trainee.findOne({  userId });
  
 
-  return new Response(JSON.stringify({ isTrainee: !!trainee }), { status: 200 });
+  return new Response(JSON.stringify({ exists: !!trainee }), { status: 200 });
 }

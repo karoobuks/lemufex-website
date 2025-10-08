@@ -97,8 +97,8 @@ const Navbar = () => {
                         {/* <pre>{JSON.stringify(user, null, 2)}</pre> */}
                     <div className=" hidden md:flex  items-center font-bold gap-6">
                         <Link href="/" className={`${pathname === '/'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'}  flex items-center gap-1 align-baseline hover:text-gray-700`}> <FaHome className="text-lg"/>  Home</Link>
-                        {  session?.user?.isTrainee === true  && (
-                            <Link href={`/dashboard/${userId}`} className={`${pathname === `/dashboard/${userId}`? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} flex items-center gap-1 align-baseline hover:text-gray-700`}> <MdDashboard className="text-lg"/> Dashboard</Link>
+                        { (session?.user?.role === "admin" || session?.user?.isTrainee === true)  && (
+                            <Link href={`/dashboard`} className={`${pathname === `/dashboard`? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} flex items-center gap-1 align-baseline hover:text-gray-700`}> <MdDashboard className="text-lg"/> Dashboard</Link>
                         )}
                         
 
@@ -147,7 +147,7 @@ const Navbar = () => {
         <div className="relative md:hidden">    
                     <ul className={`transition-all duration-300 bg-[#FE9900] w-full  left-0 z-50 ${isMobileMenuOpen ? 'opacity-100 max-h-screen py-6' : 'opacity-0 max-h-0 overflow-hidden'}`}>
                         <li><Link href="/" className={`block text-base font-medium py-4 px-2 ${pathname === '/' ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Home</Link></li>
-                        { session?.user?.isTrainee === true  && (
+                        { (session?.user?.role === "admin" || session?.user?.isTrainee === true ) && (
                         <li><Link href={`/dashboard/${userId}`} className={`block text-base font-medium py-4 px-2 ${pathname === `/dashboard/${userId}` ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Dashboard</Link></li>
                         )}
                         <li> <Link href="/services" className={`${pathname === '/services'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Services</Link></li>

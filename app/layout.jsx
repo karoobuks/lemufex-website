@@ -1,3 +1,4 @@
+
 import '@/assets/styles/globals.css'
 import LayoutWrapper from '@/components/LayoutWrapper';
 import { Toaster } from 'react-hot-toast';

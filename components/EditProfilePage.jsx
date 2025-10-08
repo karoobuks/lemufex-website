@@ -59,7 +59,7 @@ const EditProfile = ({trainee}) => {
          console.log('✅ Update result:', result);
          toast.success('Profile updated')
          signIn('credentials')
-     window.location.href = `/dashboard/${userId}/profile`;
+     window.location.href = `/dashboard/profile`;
 
     } else {
        const error = await res.json();
@@ -72,15 +72,15 @@ const EditProfile = ({trainee}) => {
 
 
     return ( <section className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
-            <h2 className="text-2xl font-bold mb-6">Edit My Profile</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Edit My Profile</h2>
             <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data" >
                 <div className="gap-6">
-                <label className="text-sm font-medium text-gray-700" htmlFor="fullName">Full Name</label>
+                <label className="text-sm font-medium text-gray-700" htmlFor="fullName">Full Name </label>
                 <input type="text"
                 name="fullName"
                 value={form.fullName}
                 required
-                className="focus:outline focus:ring-2 focus:ring-[#FE9900] text-gray-900 border border-gray-900 rounded px-3 py-2"
+                 className="mt-1 block w-full text-gray-900 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
                 onChange={handleChange}
                  />
                 </div>
@@ -91,7 +91,7 @@ const EditProfile = ({trainee}) => {
                 name="phone"
                 value={form.phone}
                 required
-                className="focus:outline focus:ring-2 focus:ring-[#FE9900] text-gray-900 border border-gray-900 rounded px-3 py-2"
+                 className="mt-1 block w-full text-gray-900 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
                 onChange={handleChange}
                  />
                 </div>
@@ -102,7 +102,7 @@ const EditProfile = ({trainee}) => {
                 name="emergencycontact"
                 value={form.emergencycontact}
                 required
-                className="focus:outline focus:ring-2 focus:ring-[#FE9900] text-gray-900 border border-gray-900 rounded px-3 py-2"
+                 className="mt-1 block w-full text-gray-900 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
                 onChange={handleChange}
                  />
                 </div>
@@ -112,8 +112,8 @@ const EditProfile = ({trainee}) => {
                 <input type="date"
                 name="dob"
                 value={form.dob}
-                required
-                className="focus:outline focus:ring-2 focus:ring-[#FE9900] text-gray-900 border border-gray-900 rounded px-3 py-2"
+                required 
+                 className="mt-1 block w-full text-gray-900 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
                 onChange={handleChange}
                  />
                 </div>
@@ -124,7 +124,7 @@ const EditProfile = ({trainee}) => {
                 name="address"
                 value={form.address}
                 required
-                className="focus:outline focus:ring-2 focus:ring-[#FE9900] text-gray-900 border border-gray-900 rounded px-3 py-2"
+                 className="mt-1 block w-full text-gray-900 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
                 onChange={handleChange}
                  />
                 </div>
@@ -134,7 +134,7 @@ const EditProfile = ({trainee}) => {
                  <input 
                  type="file"
                  name="image"
-                accept="image/*"
+                accept="image/*"  
                 onChange={(e) => {
                 const file = e.target.files[0];
                 if (file && file.size > 2 * 1024 * 1024) {
@@ -143,7 +143,7 @@ const EditProfile = ({trainee}) => {
               }
               handleChange(e);
             }}
-            className="w-full" 
+            className="text-gray-500 w-full border border-gray-300 mt-1 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]" 
                  />
                  </div>
 

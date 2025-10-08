@@ -5,6 +5,8 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Registering from './loaders/Registering';
+import toSlug from '@/utils/toSlug';
+
 
 const RegisterTrainingForm = () => {
   const [formData, setFormData] = useState({
@@ -26,10 +28,7 @@ const RegisterTrainingForm = () => {
   };
 
   const handleTrainingChange = (e) => {
-    const { value, checked } = e.target;
-    setSelectedTrainings((prev) =>
-      checked ? [...prev, value] : prev.filter((t) => t !== value)
-    );
+    setSelectedTrainings(e.target.value);
   };
 
   const handleSubmit = async (e) => {
@@ -41,10 +40,9 @@ const RegisterTrainingForm = () => {
       return;
     }
 
-    const transformedTrainings = selectedTrainings.map((track) => ({
-      track,
-      enrolledAt: new Date(),
-    }));
+    const transformedTrainings = [
+    { track: selectedTrainings, enrolledAt: new Date() }
+  ];
 
     const payload = {
       ...formData,
@@ -68,8 +66,27 @@ const RegisterTrainingForm = () => {
         return;
       }
 
+      // toast.success('Registration successful');
+
+      // const selectedCourse = data.user.trainings[0]?.track;
+
+      // router.push(`/payment/confirm?courseName=${encodeURIComponent(selectedCourse)}&email=${encodeURIComponent(data.user.email)}&userId=${data.user._id}`);
+
       toast.success('Registration successful');
-      router.push('/trainee-registration-success');
+
+    if (data?.user) {
+      const selectedCourse = data.user.trainings?.[0]?.track;
+
+      const courseSlug = toSlug(selectedCourse)
+
+      router.push(
+        `/payment/confirm?slug=${encodeURIComponent(selectedCourse)}&email=${encodeURIComponent(data.user.email)}&userId=${data.user._id}`
+      );
+    } else {
+      console.error("No user returned from API:", data);
+      toast.error("Could not fetch registered user details.");
+    }
+    
     } catch (err) {
       toast.error('Registration failed. Try again.');
       setError('Registration failed. Please try again');
@@ -178,12 +195,13 @@ const RegisterTrainingForm = () => {
               Select Trainings
             </label>
             <div className="space-y-2">
-              {['Automation', 'Electrical', 'Software Programming'].map((training) => (
+              {['Automation', 'Electrical Engineering', 'Software Programming'].map((training) => (
                 <label key={training} className="flex items-center gap-2">
                   <input
-                    type="checkbox"
+                    type="radio"
                     value={training}
-                    checked={selectedTrainings.includes(training)}
+                    name="training"
+                    checked={selectedTrainings === training}
                     onChange={handleTrainingChange}
                     className="accent-[#FE9900]"
                   />

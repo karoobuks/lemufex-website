@@ -5,6 +5,8 @@ import CareerSection from "./CareerSection";
 import ProjectsShowcase from "./ProjectShowcase";
 import Testimonials from "./Testimonials";
 import ContactCTA from "./ContactCTA";
+import Link from "next/link";
+
 
 
 
@@ -18,6 +20,7 @@ const HomePage = ({ currentUser }) => {
         <ProjectsShowcase/>
         <Testimonials/>
         <ContactCTA/>
+        
         
         {/* Admin Panel Button – Only visible to admins */}
       {currentUser?.role === 'admin' && (

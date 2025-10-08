@@ -32,23 +32,6 @@ export default function EditProfilePageWrapper() {
     fetchTrainee();
   }, [router]);
 
-  //  useEffect(() => {
-  //   async function fetchUser() {
-  //     try {
-  //       const res = await fetch('/api/me');
-  //       if (!res.ok) throw new Error('Not authenticated');
-
-  //       const data = await res.json();
-  //       setUser(data);
-  //     } catch (err) {
-  //       router.push('/login'); // redirect if not logged in manually or via google
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-
-  //   fetchUser();
-  // }, [router]);
 
   if (loading) return <p><TypingDots/></p>;
   if (!trainee) return null;
