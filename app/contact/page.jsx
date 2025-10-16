@@ -120,21 +120,27 @@
 
 
 
+"use client";
 import ContactHero from "@/components/ContactHero";
 import ContactForm from "@/components/ContactForm";
 import ContactDetails from "@/components/ContactDetails";
 import ContactMap from "@/components/ContactMap";
+import ContactCTA from "@/components/ContactCTA";
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <ContactHero />
-
-      <section className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-8">
-        <ContactForm />
-        <ContactDetails />
-        <ContactMap/>
+      
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <div className="grid lg:grid-cols-2 gap-12">
+          <ContactForm />
+          <ContactDetails />
+        </div>
       </section>
+
+      <ContactMap />
+      <ContactCTA />
     </div>
   );
 }

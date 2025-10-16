@@ -69,7 +69,7 @@ export async function POST(req) {
         body: JSON.stringify({
           email,
           amount: amount * 100, // Paystack expects kobo
-          callback_url: `${process.env.NEXT_PUBLIC_DOMAIN}/payment/verify?userId=${userId}&paymentId=${payment._id}`,
+          callback_url: `${process.env.NEXTAUTH_URL}/api/payment/verify`,
           metadata: {
             userId,
             slug,

@@ -9,14 +9,15 @@ export async function GET(req) {
 
   const { searchParams} = new URL(req.url)
   const reference = searchParams.get("reference");
-  const userId = searchParams.get("userId");
-   const paymentId = searchParams.get("paymentId");
 
   if(!reference ){
-    return NextResponse.json({ error:"Missing reference"}, { status: 400});
+    return NextResponse.redirect(
+      `${process.env.NEXTAUTH_URL}/dashboard/profile?payment=failed&error=missing-reference`
+    );
   }
 
   try {
+    // Verify with Paystack
     const res = await fetch(
       `https://api.paystack.co/transaction/verify/${reference}`,{
         headers:{
@@ -26,17 +27,19 @@ export async function GET(req) {
     );
     const data = await res.json();
 
-   
+    console.log('Paystack verification response:', data);
 
     if(data.status && data.data.status === "success"){
-       let payment = await Payment.findOne({ _id: paymentId, reference }).populate("course");
+       let payment = await Payment.findOne({ reference }).populate("course");
 
       if(!payment) {
-        return NextResponse.json(
-          {error: "Payment record not found"},
-          {status: 404}
+        console.error('Payment not found for reference:', reference);
+        return NextResponse.redirect(
+          `${process.env.NEXTAUTH_URL}/dashboard/profile?payment=failed&error=payment-not-found&reference=${reference}`
         );
       }
+
+      console.log('Found payment:', payment._id, payment.status);
 
     //   let updateFields = {
     //     status:"success",
@@ -62,87 +65,124 @@ export async function GET(req) {
     //   }
     // }
 
-          let updateFields = {
+      // Update payment status
+      let updateFields = {
+        status: "success",
         paidAt: new Date(data.data.paid_at),
         gateway_response: data.data.gateway_response,
       };
 
-      // 4. Handle installments
+      // Handle installments
       if (payment.paymentType === "installment") {
-        const course = await Course.findById(payment.course._id);
+        // Get course or use default pricing
+        let course = null;
+        if (payment.course) {
+          course = await Course.findById(payment.course._id);
+        }
 
-        // fetch all previous successful installments for this user+course
+        // Default course prices if no course found
+        const coursePrices = {
+          'Automation': { full: 150000, installment: 80000 },
+          'Electrical Engineering': { full: 120000, installment: 65000 },
+          'Software Programming': { full: 100000, installment: 55000 }
+        };
+
+        // Get all previous successful payments for this user
         const prevPayments = await Payment.find({
           userId: payment.userId,
-          course: payment.course._id,
           status: { $in: ["success", "completed"] },
+          _id: { $ne: payment._id } // Exclude current payment
         }).lean();
 
-        const prevSum = prevPayments.reduce(
-          (sum, p) => sum + (p.amount || 0),
-          0
-        );
-
+        const prevSum = prevPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
         const totalPaid = prevSum + (payment.amount || 0);
-        const totalDue = course.prices.full;
-        const amountDue = Math.max(totalDue - totalPaid, 0);
+        
+        // Determine total due amount
+        let totalDue = 100000; // Default for Software Programming
+        if (course?.prices?.full) {
+          totalDue = course.prices.full;
+        } else if (payment.course?.name) {
+          totalDue = coursePrices[payment.course.name]?.full || 100000;
+        }
 
-        const prevInstallments = prevPayments.filter(
-          (p) => p.paymentType === "installment"
-        ).length;
-        const currentInstallment = prevInstallments + 1;
+        const amountDue = Math.max(totalDue - totalPaid, 0);
+        const currentInstallment = prevPayments.length + 1;
 
         updateFields.currentInstallment = currentInstallment;
         updateFields.amountDue = amountDue;
         updateFields.status = amountDue === 0 ? "completed" : "success";
       } else {
-        // full payment
+        // Full payment
         updateFields.status = "completed";
         updateFields.amountDue = 0;
-        updateFields.currentInstallment = payment.currentInstallment || 0;
       }
 
 
+      // Update payment record
       payment = await Payment.findByIdAndUpdate(payment._id, updateFields, { new: true}).populate("course");
+      console.log('Payment updated:', payment.status);
 
+      // Handle trainee enrollment
+      const userId = payment.userId;
       let trainee = await Trainee.findOne({ user: userId});
 
-      const alreadyEnrolled = 
-      trainee && trainee.trainings.some((t) => t.course.toString() === payment.course._id.toString());
+      if (payment.course) {
+        const alreadyEnrolled = trainee && trainee.trainings.some((t) => 
+          t.course?.toString() === payment.course._id.toString()
+        );
 
-      if(!trainee) {
-        trainee = await Trainee.create({
-          user: userId,
-          trainings:[
-            { track: payment.course.name, course: payment.course._id},
-          ],
-        });
-      } else if(!alreadyEnrolled) {
+        if(!trainee) {
+          trainee = await Trainee.create({
+            user: userId,
+            fullName: data.data.customer?.first_name + ' ' + data.data.customer?.last_name || 'User',
+            email: data.data.customer?.email || '',
+            phone: data.data.customer?.phone || '',
+            emergencycontact: '',
+            dob: new Date(),
+            trainings:[
+              { track: payment.course.name, course: payment.course._id},
+            ],
+          });
+        } else if(!alreadyEnrolled) {
           trainee.trainings.push({
             track: payment.course.name,
             course: payment.course._id
           });
-          await trainee.save()
+          await trainee.save();
         }
+      }
       
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_DOMAIN}/dashboard?payment=success&course=${payment.course.slug}&reference=${reference}`
-      );
+      // Redirect based on payment type and context
+      if (payment.paymentType === 'completion' || payment.currentInstallment >= 2) {
+        // Completion payments go to profile
+        return NextResponse.redirect(
+          `${process.env.NEXTAUTH_URL}/dashboard/profile?payment=completed&reference=${reference}`
+        );
+      } else {
+        // New user payments go to dashboard
+        const courseSlug = payment.course?.slug || 'course';
+        return NextResponse.redirect(
+          `${process.env.NEXTAUTH_URL}/dashboard?payment=success&course=${courseSlug}&reference=${reference}`
+        );
+      }
     } else{
+      console.log('Payment failed or not successful:', data);
       await Payment.findOneAndUpdate(
-        { _id: paymentId, reference },
+        { reference },
         {
           status: "failed",
-          gateway_response:data?.data?.gateway_response || "failed",
+          gateway_response: data?.data?.gateway_response || "Payment failed",
         },
         { new: true}
       );
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_DOMAIN}/dashboard?payment=failed&reference=${reference}`
+        `${process.env.NEXTAUTH_URL}/dashboard/profile?payment=failed&reference=${reference}`
       );
     }
   } catch (error) {
     console.error("❌ Error verifying payment:", error);
-    return NextResponse.json({ error: "server error"}, { status: 500})
+    return NextResponse.redirect(
+      `${process.env.NEXTAUTH_URL}/dashboard/profile?payment=failed&reference=${reference}`
+    );
   }
 }

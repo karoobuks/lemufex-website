@@ -1,31 +1,39 @@
 import mongoose from "mongoose";
 
-let connected = false
+const MONGODB_URI = process.env.MONGODB_URI;
 
-const connectedDB = async () =>{
-    mongoose.set('strictQuery', true)
-
-    if(connected){
-        console.log('mongoDB is connect✅')
-        return
-    }
-
-    if(!process.env.MONGODB_URI){
-        throw new Error("❌MONGO_URI not defined in .env")
-    }
-
-    
-
-    try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000, // ⏱ fail fast (5s instead of 10s+)
-        })
-         
-        connected = true
-    } catch (error) {
-        console.log("Mongo connection error:",error.message) 
-        throw error       
-    }
+if (!MONGODB_URI) {
+  throw new Error("❌ MONGODB_URI not defined in environment variables");
 }
 
-export default connectedDB
+let cached = global.mongoose || { conn: null, promise: null };
+
+async function connectedDB() {
+  mongoose.set("strictQuery", true);
+
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      bufferCommands: true,
+    }).then((mongoose) => {
+      console.log("✅ MongoDB Connected Successfully");
+      return mongoose;
+    }).catch((err) => {
+      console.error("❌ MongoDB Connection Error:", err.message);
+      throw err;
+    });
+  }
+
+  cached.conn = await cached.promise;
+  global.mongoose = cached;
+
+  return cached.conn;
+}
+
+export default connectedDB;
