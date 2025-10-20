@@ -1,4 +1,4 @@
-
+//app/layout.jsx
 import '@/assets/styles/globals.css'
 import LayoutWrapper from '@/components/LayoutWrapper';
 import { LiveChatProvider } from '@/components/GlobalLiveChat';
@@ -14,6 +14,11 @@ export const metadata = {
   title: 'Lemufex Engineering Group',
   description: 'Engineering services across civil, mechanical, electrical, ICT, and more.',
   icons: '/favicon-lemufex.ico'
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1
 }
 
 

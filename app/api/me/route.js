@@ -169,8 +169,8 @@
 
 
 // /api/me/route.js
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/authOptions";
+// /app/api/me/route.js
+import { auth } from "@/app/api/auth/[...nextauth]/route";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import connectedDB from "@/config/database";
@@ -186,13 +186,13 @@ export async function GET() {
   try {
     let user = null;
 
-    // 1. Session
-    const session = await getServerSession(authOptions);
+    // ✅ 1. Get session from NextAuth
+    const session = await auth();
     if (session?.user?.email) {
       user = await User.findOne({ email: session.user.email });
     }
 
-    // 2. JWT cookie
+    // ✅ 2. Fallback: Check JWT cookie
     if (!user) {
       const cookieStore = await cookies();
       const token = cookieStore.get("token")?.value;
@@ -206,7 +206,7 @@ export async function GET() {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 3. Trainee & Course
+    // ✅ 3. Get trainee & course details
     let trainee = null;
     let courseDetails = null;
 
@@ -219,7 +219,7 @@ export async function GET() {
       }
     }
 
-    // 4. Construct response
+    // ✅ 4. Build response
     const reference = "LEM-" + Math.random().toString(36).slice(2, 8).toUpperCase();
 
     return Response.json(
@@ -229,9 +229,9 @@ export async function GET() {
         firstName: user.firstName,
         lastName: user.lastName,
         isTrainee: user.isTrainee,
-        course: courseDetails?.name || null,   // 👈 now top-level
-        amount: courseDetails?.price || 0,     // 👈 now top-level
-        reference,                             // 👈 added for payments
+        course: courseDetails?.name || null,
+        amount: courseDetails?.price || 0,
+        reference,
         trainee: trainee
           ? {
               id: trainee._id,
@@ -239,7 +239,7 @@ export async function GET() {
               trainings: trainee.trainings,
             }
           : null,
-             hasPassword: !!user.password,             // 👈 NEW
+        hasPassword: !!user.password,
         provider: user.provider || "credentials",
       },
       { status: 200 }
@@ -249,3 +249,4 @@ export async function GET() {
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+

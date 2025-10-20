@@ -1,4 +1,4 @@
-import RegisterTrainingForm from "@/components/ResgisterTrainingForm";
+import RegisterTrainingForm from "@/components/RegisterTrainingForm";
 
 const RegisterTrainee = () => {
     return ( <RegisterTrainingForm /> );

@@ -15,10 +15,10 @@ export default function AccountDetails({ details }) {
   ]
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 border border-gray-100">
       <div className="flex items-center gap-3 mb-6">
         <FaShieldAlt className="text-[#FE9900] text-2xl" />
-        <h2 className="text-2xl font-bold text-[#002B5B]">Account Details</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-[#002B5B]">Account Details</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

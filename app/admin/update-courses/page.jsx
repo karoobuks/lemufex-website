@@ -185,7 +185,7 @@ export default function UpdateCoursesPage() {
                     placeholder="Enter course name"
                     value={course}
                     onChange={(e) => updateCourseName(course, e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-600 placeholder:font-medium"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-700 placeholder:font-semibold"
                   />
                 </div>
 
@@ -201,7 +201,7 @@ export default function UpdateCoursesPage() {
                       placeholder="Enter full payment amount"
                       value={prices[course].full}
                       onChange={(e) => handleChange(course, "full", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-600 placeholder:font-medium"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-700 placeholder:font-semibold"
                     />
                   </div>
                   <div className="space-y-2">
@@ -214,7 +214,7 @@ export default function UpdateCoursesPage() {
                       placeholder="Enter installment amount"
                       value={prices[course].installment}
                       onChange={(e) => handleChange(course, "installment", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-600 placeholder:font-medium"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-700 placeholder:font-semibold"
                     />
                   </div>
                 </div>

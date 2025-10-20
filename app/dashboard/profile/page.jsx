@@ -84,7 +84,7 @@ export default function ProfilePage() {
   }
 
   const accountInfo = {
-    username: trainee?.userName || session?.user?.firstName || '',
+    username: session?.user?.firstName || trainee?.fullName?.split(' ')[0] || 'User',
     createdAt: trainee?.createdAt
       ? new Date(trainee.createdAt).toLocaleDateString('en-US', {
           year: 'numeric',
@@ -98,7 +98,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FC]">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
         {/* Header Navigation */}
         <div className="mb-6">
           <button 
@@ -107,7 +107,7 @@ export default function ProfilePage() {
           >
             <FaArrowLeft /> Back to Dashboard
           </button>
-          <h1 className="text-2xl font-bold text-[#002B5B]">My Profile</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#002B5B]">My Profile</h1>
           <p className="text-[#555]">Manage your account information and settings</p>
         </div>
 
@@ -122,7 +122,11 @@ export default function ProfilePage() {
           />
           <PersonalInfo info={userInfo} />
           <AccountDetails details={accountInfo} />
-          <PaymentSection key={searchParams.get('payment')} />
+          <PaymentSection 
+            key={searchParams.get('payment')} 
+            courseId={trainee?.trainings?.[0]?.course || null}
+            track={trainee?.trainings?.[0]?.track || trainee?.course || 'Software Programming'}
+          />
           <DocumentsSection documents={userInfo.documents} />
           <SupportSection />
         </div>

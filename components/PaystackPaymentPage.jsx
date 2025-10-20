@@ -169,10 +169,10 @@ export default function PaymentConfirmPage() {
         {/* Security Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-3">
-            <FaShieldAlt className="text-blue-600" />
+            <FaShieldAlt className="text-[#081C3C]" />
             <div>
-              <h3 className="font-semibold text-blue-800">Secure Payment</h3>
-              <p className="text-sm text-blue-600">
+              <h3 className="font-semibold text-[#002B5B]">Secure Payment</h3>
+              <p className="text-sm text-gray-600">
                 Your payment is processed securely through Paystack. We never store your card details.
               </p>
             </div>

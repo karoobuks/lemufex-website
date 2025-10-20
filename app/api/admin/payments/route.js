@@ -8,31 +8,62 @@ export async function GET(req) {
     try {
         await connectedDB();
 
-        // First get raw payments without population
-        const rawPayments = await Payment.find().sort({ createdAt: -1 }).lean();
-        console.log('Raw payments count:', rawPayments.length);
-        console.log('Sample raw payment:', rawPayments[0]);
+        const { searchParams } = new URL(req.url);
+        const page = parseInt(searchParams.get("page")) || 1;
+        const search = searchParams.get("search") || "";
+        const status = searchParams.get("status") || "all";
+
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        // Build query
+        let query = {};
         
-        // Then get populated payments
-        const payments = await Payment.find()
-            .populate("userId", "firstName lastName email")
-            .populate("course", "name")
-            .sort({ createdAt: -1 })
-            .lean();
-        
-        console.log('Populated payments count:', payments.length);
-        console.log('Sample populated payment:', payments[0]);
-        
-        // Check if userId exists in raw data
-        if (rawPayments[0]) {
-            console.log('Raw userId field:', rawPayments[0].userId);
-            console.log('Raw email field:', rawPayments[0].email);
+        // Status filter
+        if (status !== "all") {
+            query.status = status;
         }
+        
+        // Search filter
+        if (search) {
+            const users = await User.find({
+                $or: [
+                    { firstName: { $regex: search, $options: "i" } },
+                    { lastName: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } }
+                ]
+            }).select('_id');
+            
+            const courses = await Course.find({
+                name: { $regex: search, $options: "i" }
+            }).select('_id');
+            
+            query.$or = [
+                { userId: { $in: users.map(u => u._id) } },
+                { course: { $in: courses.map(c => c._id) } },
+                { email: { $regex: search, $options: "i" } }
+            ];
+        }
+        
+        const [payments, total] = await Promise.all([
+            Payment.find(query)
+                .populate("userId", "firstName lastName email")
+                .populate("course", "name")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Payment.countDocuments(query)
+        ]);
         
         return NextResponse.json({
             success: true,
             payments,
-            pagination: { page: 1, pages: 1, total: payments.length }
+            pagination: {
+                total,
+                page,
+                pages: Math.ceil(total / limit)
+            }
         }, { status: 200 });
     } catch (error) {
         console.error('Error fetching payments:', error);

@@ -4,8 +4,7 @@ import { NextResponse } from "next/server";
 import connectedDB from "@/config/database";
 import Resource from "@/models/Resource";
 import { reverseSlugify } from "@/utils/slugify";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/authOptions";
+import { auth } from "@/app/api/auth/[...nextauth]/route";
 import User from "@/models/User";
 import Trainee from "@/models/Trainee";
 
@@ -14,7 +13,7 @@ import Trainee from "@/models/Trainee";
 export async function GET(req, { params }) {
   await connectedDB();
 
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if(!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized"}, { status: 401});

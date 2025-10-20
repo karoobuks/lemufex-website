@@ -1,61 +1,80 @@
+import { NextResponse } from 'next/server';
 
-import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-import { getToken } from "next-auth/jwt";
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
-
-export async function middleware(req) {
-  const url = req.nextUrl.clone();
-  const path = url.pathname;
-
-  let token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-  if (!token) {
-    const rawToken = req.cookies.get('token')?.value;
-    if (rawToken) {
-      try {
-        const { payload } = await jwtVerify(rawToken, JWT_SECRET);
-        token = payload;
-      } catch (error) {
-        console.error('❌ Invalid custom jwt token in middleware:', error);
-      }
+export function middleware(request) {
+  const { pathname, searchParams } = request.nextUrl;
+  
+  // Check for suspicious redirect parameters
+  const callbackUrl = searchParams.get('callbackUrl');
+  const redirect = searchParams.get('redirect');
+  const returnTo = searchParams.get('returnTo');
+  
+  const suspiciousParams = [callbackUrl, redirect, returnTo].filter(Boolean);
+  
+  for (const param of suspiciousParams) {
+    if (param && isSuspiciousUrl(param)) {
+      console.warn(`🚨 Blocked suspicious redirect: ${param}`);
+      
+      // Redirect to safe page instead
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '';
+      return NextResponse.redirect(url);
     }
   }
-
-  // If no valid token
-  if (!token) {
-    return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(req.url)}`, req.url));
-  }
-
-  // Block access to /admin if not admin
-  if (path.startsWith('/admin') && token.role !== 'admin') {
-    url.pathname = '/unauthorized';
-    return NextResponse.redirect(url);
-  }
-
-  if(path.startsWith("/dashboard")){
-      const isAdmin = token.role === "admin";
-      const isTrainee = token.isTrainee === true;
-     if (!(isAdmin || isTrainee)) {
-    return NextResponse.redirect(new URL("/register-training", req.url));
-  }
   
-  }
+  // Security headers
+  const response = NextResponse.next();
+  
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  
+  return response;
+}
 
-  return NextResponse.next();
+function isSuspiciousUrl(url) {
+  try {
+    // Block external domains
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      const urlObj = new URL(url);
+      const allowedDomains = [
+        'localhost',
+        '127.0.0.1',
+        process.env.APP_URL?.replace(/https?:\/\//, ''),
+        ...(process.env.ALLOWED_REDIRECT_DOMAINS?.split(',') || [])
+      ].filter(Boolean);
+      
+      const isAllowed = allowedDomains.some(domain => 
+        urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+      );
+      
+      if (!isAllowed) {
+        return true;
+      }
+    }
+    
+    // Block suspicious patterns
+    const suspiciousPatterns = [
+      /bedpage/i,
+      /javascript:/i,
+      /data:/i,
+      /vbscript:/i,
+      /%2F%2F/i, // //
+      /\/\//,    // //
+    ];
+    
+    return suspiciousPatterns.some(pattern => pattern.test(url));
+  } catch {
+    return true; // Block invalid URLs
+  }
 }
 
 export const config = {
   matcher: [
-    '/services',
-    '/request-quotes',
-    '/why-choose-us',
-    '/contact',
-    '/dashboard',
-    '/dashboard/:path*',
-    '/register-training',
-    '/trainee-registration-success',
-    '/about',
-  ]
+    '/api/auth/:path*',
+    '/login',
+    '/logout',
+    '/api/logout',
+  ],
 };

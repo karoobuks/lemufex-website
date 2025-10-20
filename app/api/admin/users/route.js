@@ -9,20 +9,42 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get("page")) || 1;
   const search = searchParams.get("search") || "";
+  const role = searchParams.get("role") || "all";
 
   const limit = 10;
   const skip = (page - 1) * limit;
 
-  // search filter (by name or email)
-  const query = search
-    ? {
-        $or: [
-          { firstName: { $regex: search, $options: "i" } },
-          { lastName: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-        ],
-      }
-    : {};
+  // Build query
+  let query = {};
+  
+  // Search filter (by name or email)
+  if (search) {
+    query.$or = [
+      { firstName: { $regex: search, $options: "i" } },
+      { lastName: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+  
+  // Role filter
+  if (role !== "all") {
+    if (search) {
+      query = {
+        $and: [
+          {
+            $or: [
+              { firstName: { $regex: search, $options: "i" } },
+              { lastName: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+            ]
+          },
+          { role: role }
+        ]
+      };
+    } else {
+      query.role = role;
+    }
+  }
 
   const [users, total] = await Promise.all([
     User.find(query)

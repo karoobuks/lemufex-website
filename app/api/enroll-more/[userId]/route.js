@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { authOptions } from "@/utils/authOptions";
-import { getServerSession } from "next-auth";
+import { auth } from "@/app/api/auth/[...nextauth]/route";
 import User from "@/models/User";
 import connectedDB from "@/config/database";
 import Trainee from "@/models/Trainee";
@@ -9,7 +8,7 @@ export async function POST(req, {params}){
     try {
         await connectedDB()
 
-        const session = await getServerSession(authOptions)
+        const session = await auth()
         if(!session?.user?.email){
             return NextResponse.json({error:'Unauthorized'}, {status:401})
         }

@@ -31,7 +31,7 @@ export default function TraineesPage() {
     const [page, setPage] = useState(1)
     const [search, setSearch] = useState("")
     const [searchInput, setSearchInput] = useState("")
-    const [roleFilter, setRoleFilter] = useState("all")
+    const [courseFilter, setCourseFilter] = useState("all")
     const [selectedTrainee, setSelectedTrainee] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [imageViewer, setImageViewer] = useState({ show: false, src: '', name: '' })
@@ -40,7 +40,7 @@ export default function TraineesPage() {
         const fetchTrainees = async () => {
             setLoading(true)
             try {
-                const res = await fetch(`/api/admin/trainees?page=${page}&search=${search}&role=${roleFilter}`)
+                const res = await fetch(`/api/admin/trainees?page=${page}&search=${search}&course=${courseFilter}`)
                 const data = await res.json()
                 
                 if (data.success !== false) {
@@ -56,7 +56,7 @@ export default function TraineesPage() {
             }
         }
         fetchTrainees()
-    }, [page, search, roleFilter])
+    }, [page, search, courseFilter])
 
     const handleSearch = () => {
         setSearch(searchInput)
@@ -71,9 +71,41 @@ export default function TraineesPage() {
 
     const exportTrainees = async () => {
         try {
-            toast.success("Export feature coming soon!")
+            const res = await fetch(`/api/admin/trainees?export=true&search=${search}&course=${courseFilter}`)
+            const data = await res.json()
+            
+            if (data.success !== false) {
+                const csvContent = [
+                    ['Name', 'Email', 'Phone', 'Course', 'Track', 'Emergency Contact', 'Date of Birth', 'Address', 'Joined Date'].join(','),
+                    ...data.trainees.map(trainee => [
+                        `"${trainee.fullName || ''}",`,
+                        `"${trainee.email || ''}",`,
+                        `"${trainee.phone || ''}",`,
+                        `"${trainee.course || ''}",`,
+                        `"${trainee.trainings?.[0]?.track || ''}",`,
+                        `"${trainee.emergencycontact || ''}",`,
+                        `"${trainee.dob ? new Date(trainee.dob).toLocaleDateString() : ''}",`,
+                        `"${trainee.address || ''}",`,
+                        `"${new Date(trainee.createdAt).toLocaleDateString()}"`
+                    ].join(''))
+                ].join('\n')
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' })
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `trainees-${new Date().toISOString().split('T')[0]}.csv`
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                window.URL.revokeObjectURL(url)
+                
+                toast.success('Trainees exported successfully!')
+            } else {
+                toast.error('Failed to export trainees')
+            }
         } catch (error) {
-            toast.error("Export failed")
+            toast.error('Export failed')
         }
     }
 
@@ -118,26 +150,26 @@ export default function TraineesPage() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-[#FE9900] rounded-lg">
-                        <FaGraduationCap className="text-white" size={24} />
+                        <FaGraduationCap className="text-white" size={20} />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Trainee Management</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Trainee Management</h1>
                 </div>
                 <p className="text-gray-600">Manage and monitor all registered trainees</p>
             </div>
 
             {/* Search and Filters */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex flex-col lg:flex-row gap-4 items-end">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                <div className="flex flex-col gap-4">
                     {/* Search */}
-                    <div className="flex-1 space-y-2">
+                    <div className="space-y-2">
                         <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                             <FiSearch size={16} />
                             Search Trainees
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                             <input
                                 type="text"
                                 placeholder="Search by name or email..."
@@ -148,51 +180,57 @@ export default function TraineesPage() {
                             />
                             <button
                                 onClick={handleSearch}
-                                className="flex items-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200"
+                                className="flex items-center justify-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 text-sm sm:text-base"
                             >
                                 <FiSearch size={16} />
-                                Search
+                                <span className="hidden sm:inline">Search</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Role Filter */}
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                            <FiFilter size={16} />
-                            Filter by Role
-                        </label>
-                        <select
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
-                            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200"
-                        >
-                            <option value="all">All Roles</option>
-                            <option value="trainee">Trainee</option>
-                            <option value="user">User</option>
-                        </select>
-                    </div>
+                    {/* Filters and Export */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        {/* Course Filter */}
+                        <div className="flex-1 space-y-2">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <FiFilter size={16} />
+                                Filter by Course
+                            </label>
+                            <select
+                                value={courseFilter}
+                                onChange={(e) => setCourseFilter(e.target.value)}
+                                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 font-semibold text-gray-800"
+                            >
+                                <option value="all">All Courses</option>
+                                <option value="Automation">Automation</option>
+                                <option value="Electrical Engineering">Electrical Engineering</option>
+                                <option value="Software Programming">Software Programming</option>
+                            </select>
+                        </div>
 
-                    {/* Export Button */}
-                    <button
-                        onClick={exportTrainees}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200"
-                    >
-                        <FiDownload size={16} />
-                        Export
-                    </button>
+                        {/* Export Button */}
+                        <div className="flex items-end">
+                            <button
+                                onClick={exportTrainees}
+                                className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 text-sm sm:text-base w-full sm:w-auto"
+                            >
+                                <FiDownload size={16} />
+                                Export
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Trainees Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-4 sm:p-6 border-b border-gray-200">
                     <div className="flex items-center gap-2">
-                        <FiUsers className="text-[#FE9900]" size={20} />
-                        <h3 className="text-xl font-bold text-gray-900">
+                        <FiUsers className="text-[#FE9900]" size={18} />
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">
                             Trainees List
                             {pagination.total && (
-                                <span className="text-sm font-normal text-gray-500 ml-2">
+                                <span className="text-xs sm:text-sm font-normal text-gray-500 ml-2 block sm:inline">
                                     ({pagination.total} total)
                                 </span>
                             )}
@@ -230,7 +268,7 @@ export default function TraineesPage() {
                                         </div>
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Role
+                                        Course
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         <div className="flex items-center gap-2">
@@ -278,12 +316,8 @@ export default function TraineesPage() {
                                             <div className="text-sm text-gray-900">{trainee.email}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                trainee.role === 'trainee' 
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-gray-100 text-gray-800'
-                                            }`}>
-                                                {trainee.role}
+                                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                {trainee.trainings?.[0]?.track || trainee.course || 'N/A'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -312,33 +346,33 @@ export default function TraineesPage() {
 
             {/* Pagination */}
             {!loading && trainees.length > 0 && pagination.pages > 1 && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                            Showing page {pagination.page} of {pagination.pages}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+                            Page {pagination.page} of {pagination.pages}
                             {pagination.total && (
-                                <span className="ml-1">({pagination.total} total trainees)</span>
+                                <span className="block sm:inline sm:ml-1">({pagination.total} total)</span>
                             )}
                         </div>
                         <div className="flex items-center space-x-2">
                             <button
                                 disabled={page <= 1}
                                 onClick={() => setPage(page - 1)}
-                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                             >
-                                <FiChevronLeft size={16} />
-                                Previous
+                                <FiChevronLeft size={14} />
+                                <span className="hidden sm:inline">Previous</span>
                             </button>
-                            <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                            <span className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-50 rounded-lg">
                                 {page}
                             </span>
                             <button
                                 disabled={page >= pagination.pages}
                                 onClick={() => setPage(page + 1)}
-                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                             >
-                                Next
-                                <FiChevronRight size={16} />
+                                <span className="hidden sm:inline">Next</span>
+                                <FiChevronRight size={14} />
                             </button>
                         </div>
                     </div>
@@ -349,8 +383,8 @@ export default function TraineesPage() {
             {showModal && selectedTrainee && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                                {/* Modal Header */}
+                        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
                             <div className="flex items-center gap-3">
                                 <div className="h-12 w-12 rounded-full relative">
                                     {selectedTrainee.profilePicture || selectedTrainee.image || selectedTrainee.avatar ? (
@@ -385,7 +419,7 @@ export default function TraineesPage() {
                         </div>
 
                         {/* Modal Content */}
-                        <div className="p-6 space-y-6">
+                        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                             {/* Personal Information */}
                             <div>
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -412,13 +446,9 @@ export default function TraineesPage() {
                                         </p>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-sm font-medium text-gray-500">Role</label>
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                            selectedTrainee.role === 'trainee' 
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                            {selectedTrainee.role}
+                                        <label className="text-sm font-medium text-gray-500">Course/Track</label>
+                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            {selectedTrainee.trainings?.[0]?.track || selectedTrainee.course || 'N/A'}
                                         </span>
                                     </div>
                                 </div>
@@ -492,7 +522,7 @@ export default function TraineesPage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
+                        <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
                             <button
                                 onClick={closeModal}
                                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"

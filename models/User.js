@@ -97,6 +97,7 @@ const UserSchema = new Schema(
       required: [true, "Please enter your email"],
       unique: true,
       trim: true,
+      index:true,
     },
     password: {
       type: String,

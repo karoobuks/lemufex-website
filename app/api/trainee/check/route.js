@@ -1,10 +1,9 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/authOptions";
+import { auth } from "@/app/api/auth/[...nextauth]/route";
 import connectedDB from "@/config/database";
 import Trainee from "@/models/Trainee";
 
 export async function GET(req) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user) {
     return new Response(JSON.stringify({ exists: false }), { status: 401 });
   }

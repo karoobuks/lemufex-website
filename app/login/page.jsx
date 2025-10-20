@@ -18,12 +18,57 @@ import {
 import Image from "next/image"
 import Logo from "@/assets/images/lemufexbr.png"
 
+// Validate callback URL to prevent open redirects
+function validateCallbackUrl(url) {
+  if (!url || url === '/') return '/'
+  
+  // Block external URLs
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const urlObj = new URL(url)
+      const allowedDomains = ['localhost', '127.0.0.1']
+      const isAllowed = allowedDomains.some(domain => 
+        urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+      )
+      if (!isAllowed) {
+        console.warn('🚨 Blocked external redirect:', url)
+        return '/'
+      }
+    } catch {
+      return '/'
+    }
+  }
+  
+  // Block suspicious patterns
+  const suspiciousPatterns = [
+    /bedpage/i,
+    /javascript:/i,
+    /data:/i,
+    /\/\//,
+    /%2F%2F/i
+  ]
+  
+  if (suspiciousPatterns.some(pattern => pattern.test(url))) {
+    console.warn('🚨 Blocked suspicious redirect:', url)
+    return '/'
+  }
+  
+  // Only allow relative URLs starting with /
+  if (!url.startsWith('/')) {
+    return '/'
+  }
+  
+  return url
+}
+
 const LoginPage = () => {
     const { data: session, status } = useSession()
     const [error, setError] = useState('')
     const router = useRouter()
     const searchParams = useSearchParams()
-    const callbackUrl = searchParams.get('callbackUrl') || '/'
+    // Secure callback URL validation
+    const rawCallbackUrl = searchParams.get('callbackUrl') || '/'
+    const callbackUrl = validateCallbackUrl(rawCallbackUrl)
     const [showPassword, setShowPassword] = useState(false)
     const [rememberMe, setRememberMe] = useState(false)
 

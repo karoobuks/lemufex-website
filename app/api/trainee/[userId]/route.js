@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(req,{params}){
     await connectedDB()
-    const {userId} = params;
+    const {userId} = await params;
     try {
         const trainee = await Trainee.findOne({user: userId}).populate("trainings.course", "name totalModules")
         

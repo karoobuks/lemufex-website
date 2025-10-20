@@ -9,19 +9,57 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get("page")) || 1;
   const search = searchParams.get("search") || "";
+  const course = searchParams.get("course") || "all";
+  const isExport = searchParams.get("export") === "true";
 
-  const limit = 10;
-  const skip = (page - 1) * limit;
+  const limit = isExport ? 0 : 10;
+  const skip = isExport ? 0 : (page - 1) * limit;
 
-  // search filter (by name or email)
-  const query = search
-    ? {
-        $or: [
-          { fullName: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-        ],
-      }
-    : {};
+  // Build query
+  let query = {};
+  
+  // Search filter (by name or email)
+  if (search) {
+    query.$or = [
+      { fullName: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+  
+  // Course filter
+  if (course !== "all") {
+    const courseQuery = {
+      $or: [
+        { "trainings.track": course },
+        { course: course }
+      ]
+    };
+    
+    // Combine with search if both exist
+    if (search) {
+      query = {
+        $and: [
+          {
+            $or: [
+              { fullName: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+            ]
+          },
+          courseQuery
+        ]
+      };
+    } else {
+      query = courseQuery;
+    }
+  }
+
+  if (isExport) {
+    const trainees = await Trainee.find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+      
+    return NextResponse.json({ trainees });
+  }
 
   const [trainees, total] = await Promise.all([
     Trainee.find(query)

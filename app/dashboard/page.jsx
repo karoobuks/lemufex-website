@@ -114,43 +114,51 @@ export default function TraineeDashboard() {
   const trainings = session?.user?.trainings || [];
   const userId = session?.user?.id;
   const [isStillTrainee, setIsStillTrainee] = useState(false);
+  const [enrollmentDates, setEnrollmentDates] = useState({});
+
+  const fetchEnrollmentDates = async () => {
+    try {
+      const response = await fetch(`/api/trainee/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const dates = {};
+        data.data?.trainings?.forEach(training => {
+          if (training.enrolledAt) {
+            dates[training.track] = training.enrolledAt;
+          }
+        });
+        setEnrollmentDates(dates);
+      }
+    } catch (error) {
+      console.error('Error fetching enrollment dates:', error);
+    }
+  };
 
   useEffect(() => {
     if (status === "loading") return;
 
     if (!session) {
-      router.replace("/login");
+      router.push("/login");
       return;
     }
 
     const isAdmin = session.user.role === "admin";
     const isTrainee = session.user.isTrainee;
 
-    if (!isAdmin && isTrainee) {
-      fetch("/api/trainee/check")
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data.exists) {
-            toast.error("Your trainee record was removed. Please re-enroll.");
-            router.replace("/register-training");
-          } else {
-            setIsStillTrainee(true);
-            setLoading(false);
-          }
-        })
-        .catch(() => {
-          toast.error("Error verifying trainee status.");
-          router.replace("/register-training");
-        });
+    if (isAdmin) {
+      setLoading(false);
       return;
     }
 
-    if (!isAdmin && !isTrainee) {
-      router.replace("/register-training");
+    if (isTrainee) {
+      setIsStillTrainee(true);
+      setLoading(false);
+      // Fetch enrollment dates
+      fetchEnrollmentDates();
       return;
     }
 
-    setLoading(false);
+    router.push("/register-training");
   }, [status, session, router]);
 
   if (loading) return <LemLoader />;
@@ -188,7 +196,10 @@ export default function TraineeDashboard() {
                   <div>
                     <h3 className="font-medium text-[#002B5B]">{training.track}</h3>
                     <p className="text-sm text-gray-500">
-                      Enrolled: {new Date(training.enrolledAt).toLocaleDateString()}
+                      Enrolled: {enrollmentDates[training.track] 
+                        ? new Date(enrollmentDates[training.track]).toLocaleDateString()
+                        : new Date().toLocaleDateString()
+                      }
                     </p>
                   </div>
                   <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">

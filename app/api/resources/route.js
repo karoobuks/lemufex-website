@@ -4,15 +4,14 @@ import { NextResponse } from "next/server";
 import cloudinary from "@/config/cloudinary";
 import { Readable } from "stream";
 import Trainee from "@/models/Trainee";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/authOptions";
+import { auth } from "@/app/api/auth/[...nextauth]/route";
 import Course from "@/models/Course";
 import { v2 } from "cloudinary";
 import path from "path";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if(!session){
       return NextResponse.json({error:"Unauthorized"}, {status:401})

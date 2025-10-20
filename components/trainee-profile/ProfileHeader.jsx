@@ -60,7 +60,7 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 border border-gray-100">
       <div className="flex flex-col md:flex-row items-center gap-6">
         {/* Profile Image */}
         <div className="relative">
@@ -107,10 +107,10 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
 
         {/* Profile Info */}
         <div className="text-center md:text-left">
-          <h1 className="text-3xl font-bold text-[#002B5B] mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#002B5B] mb-2">
             {name || 'Welcome'}
           </h1>
-          <p className="text-[#555] text-lg mb-1">
+          <p className="text-[#555] text-base sm:text-lg mb-1">
             Lemufex Engineering Trainee
           </p>
           <div className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold border border-green-200">

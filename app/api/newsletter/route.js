@@ -41,6 +41,8 @@ import { sendEmail } from "@/utils/mailer";
 import { render } from "@react-email/render";
 import nodemailer from "nodemailer";
 import WelcomeEmail from "@/components/email/WelcomeEmail";
+import connectedDB from "@/config/database";
+import Newsletter from "@/models/Newsletter";
 
 export async function POST(req) {
   try {
@@ -51,6 +53,28 @@ export async function POST(req) {
         { message: "Invalid email address" },
         { status: 400 }
       );
+    }
+
+    await connectedDB();
+
+    // Check if email already exists
+    const existingSubscriber = await Newsletter.findOne({ email });
+    if (existingSubscriber) {
+      if (existingSubscriber.status === 'unsubscribed') {
+        existingSubscriber.status = 'active';
+        existingSubscriber.unsubscribedAt = null;
+        await existingSubscriber.save();
+      } else {
+        return NextResponse.json(
+          { message: "Email already subscribed to newsletter" },
+          { status: 400 }
+        );
+      }
+    } else {
+      await Newsletter.create({
+        email,
+        name: name || email.split("@")[0]
+      });
     }
 
     // --- 1. Notify Admin (your inbox) ---
@@ -92,6 +116,27 @@ export async function POST(req) {
       { message: "Server error" },
       { status: 500 }
     );
+  }
+}
+
+export async function GET() {
+  try {
+    await connectedDB();
+    
+    const subscribers = await Newsletter.find({})
+      .sort({ subscribedAt: -1 })
+      .select('email name status subscribedAt unsubscribedAt');
+    
+    const stats = {
+      total: subscribers.length,
+      active: subscribers.filter(s => s.status === 'active').length,
+      unsubscribed: subscribers.filter(s => s.status === 'unsubscribed').length
+    };
+    
+    return NextResponse.json({ subscribers, stats });
+  } catch (error) {
+    console.error('Error fetching newsletter subscribers:', error);
+    return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 });
   }
 }
 

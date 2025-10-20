@@ -148,7 +148,7 @@ const Navbar = () => {
                     <ul className={`transition-all duration-300 bg-[#FE9900] w-full  left-0 z-50 ${isMobileMenuOpen ? 'opacity-100 max-h-screen py-6' : 'opacity-0 max-h-0 overflow-hidden'}`}>
                         <li><Link href="/" className={`block text-base font-medium py-4 px-2 ${pathname === '/' ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Home</Link></li>
                         { (session?.user?.role === "admin" || session?.user?.isTrainee === true ) && (
-                        <li><Link href={`/dashboard/${userId}`} className={`block text-base font-medium py-4 px-2 ${pathname === `/dashboard/${userId}` ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Dashboard</Link></li>
+                        <li><Link href={`/dashboard`} className={`block text-base font-medium py-4 px-2 ${pathname === `/dashboard` ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Dashboard</Link></li>
                         )}
                         <li> <Link href="/services" className={`${pathname === '/services'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Services</Link></li>
                         <li> <Link href="/why-choose-us" className={`${pathname === '/why-choose-us'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Why Choose Us</Link></li>
