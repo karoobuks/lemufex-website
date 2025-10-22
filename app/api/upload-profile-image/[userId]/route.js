@@ -10,13 +10,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function POST(request) {
+export async function POST(request, {params}) {
   try {
     await connectedDB();
 
     const formData = await request.formData();
     const image = formData.get('image');
-    const userId = formData.get('userId');
+    const { userId } = params;
 
     if (!image || !userId) {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function POST(request) {
 
     // Update trainee record with new image URL
     const updatedTrainee = await Trainee.findOneAndUpdate(
-      { userId },
+      { user: userId },
       { image: uploadResponse.secure_url },
       { new: true }
     );

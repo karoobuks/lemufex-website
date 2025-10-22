@@ -14,7 +14,8 @@ const trainingSchema = new Schema({
   },
   enrolledAt: {
     type: Date,
-    default: Date.now,
+    default:() => new Date(),
+    immutable: true,
   },
   completedModules: {
     type: Number,

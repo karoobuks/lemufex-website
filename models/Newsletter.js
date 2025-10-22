@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid'; // to generate unique unsubscribe tokens
 
 const newsletterSchema = new mongoose.Schema({
   email: {
@@ -23,8 +24,21 @@ const newsletterSchema = new mongoose.Schema({
   },
   unsubscribedAt: {
     type: Date
+  },
+  unsubscribeToken: {
+    type: String,
+    unique: true,
+    index: true
   }
 }, { timestamps: true });
+
+// ✅ Automatically generate unique unsubscribe token before saving
+newsletterSchema.pre('save', function (next) {
+  if (!this.unsubscribeToken) {
+    this.unsubscribeToken = uuidv4();
+  }
+  next();
+});
 
 const Newsletter = mongoose.models.Newsletter || mongoose.model('Newsletter', newsletterSchema);
 

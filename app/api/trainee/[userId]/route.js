@@ -13,13 +13,27 @@ export async function GET(req,{params}){
         }
         // return NextResponse.json({success:true, data:trainee},{status:200})
 
-        return NextResponse.json({success:true, data:trainee},{
-            trainings: trainee.trainings.map((t) =>({
-                courseName: t.course?.name,
-                totalModules: t.course?.totalModules || 0,
-                completeModules: t.completeModules || 0,
-            }))
-        })
+        // return NextResponse.json({success:true, data:trainee},{
+        //     trainings: trainee.trainings.map((t) =>({
+        //         courseName: t.course?.name,
+        //         totalModules: t.course?.totalModules || 0,
+        //         completeModules: t.completeModules || 0,
+        //     }))
+        // })
+
+        return NextResponse.json({
+        success: true,
+        data: {
+            ...trainee.toObject(), // spread full trainee data
+            trainings: trainee.trainings.map((t) => ({
+            courseName: t.course?.name,
+            totalModules: t.course?.totalModules || 0,
+            completedModules: t.completedModules || 0, // ✅ small typo fix too
+            enrolledAt: t.enrolledAt, // ✅ include date field you mentioned
+            })),
+        },
+        }, { status: 200 });
+
     } catch (error) {
         console.error('Error fetching trainee:', error)
         return NextResponse.json({error:'Internal server error'},{status:500})

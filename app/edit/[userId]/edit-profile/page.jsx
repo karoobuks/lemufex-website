@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,34 +8,45 @@ import { useSession } from 'next-auth/react';
 export default function EditProfilePageWrapper() {
   const [trainee, setTrainee] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null)
-  const {data:session, status} = useSession()
-  const userId = session?.user?.id
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const userId = session?.user?.id;
 
   useEffect(() => {
+    // 🧠 Wait until session is known
+    if (status === 'loading') return;
+
+    // 🧩 If user is not authenticated
+    if (status === 'unauthenticated' || !userId) {
+      router.push('/login');
+      return;
+    }
+
     async function fetchTrainee() {
       try {
         const res = await fetch(`/api/trainee/${userId}`);
-        if (!res.ok) throw new Error('Not authenticated');
+        const json = await res.json();
 
-        const data = await res.json();
-        setTrainee(data);
+        if (!res.ok || !json.data) {
+          throw new Error(json.error || 'Failed to fetch trainee');
+        }
+
+        setTrainee(json.data);
       } catch (err) {
-        router.push('/login'); // redirect if not logged in manually or via google
+        console.error('Error fetching trainee:', err);
+        router.push('/login');
       } finally {
         setLoading(false);
       }
     }
 
     fetchTrainee();
-  }, [router]);
+  }, [status, userId, router]);
 
-
-  if (loading) return <p><TypingDots/></p>;
+  if (status === 'loading' || loading) return <TypingDots />;
   if (!trainee) return null;
 
-  return <EditProfilePage trainee={trainee}  />;
+  return <EditProfilePage trainee={trainee} />;
 }
 
 

@@ -129,7 +129,7 @@ const EditProfile = ({trainee}) => {
                  />
                 </div>
 
-                <div>
+                {/* <div>
                 <label className="block  text-gray-900 font-medium" >Profile Image</label>
                  <input 
                  type="file"
@@ -145,7 +145,7 @@ const EditProfile = ({trainee}) => {
             }}
             className="text-gray-500 w-full border border-gray-300 mt-1 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FE9900]" 
                  />
-                 </div>
+                 </div> */}
 
                  <button 
                  type="submit" 

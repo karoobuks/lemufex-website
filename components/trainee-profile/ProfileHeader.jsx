@@ -35,9 +35,9 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
       
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('userId', userId);
+      
 
-      const response = await fetch('/api/upload-profile-image', {
+      const response = await fetch(`/api/upload-profile-image/${userId}`, {
         method: 'POST',
         body: formData,
       });
