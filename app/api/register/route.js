@@ -54,7 +54,7 @@
 // }
 
 
-
+//app/api/register
 import { NextResponse } from 'next/server';
 import connectedDB from '@/config/database';
 import User from '@/models/User';
