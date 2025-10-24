@@ -81,7 +81,7 @@ import {
  const MAX_LOGIN_ATTEMPTS_PER_IP = parseInt(process.env.RATE_LIMIT_MAX_LOGIN_ATTEMPTS_PER_IP || '3', 10);
  const FAILED_ATTEMPTS_LIMIT = parseInt(process.env.FAILED_ATTEMPTS_LIMIT || '5', 10);
  const ACCOUNT_LOCK_TTL_SECONDS = parseInt(process.env.ACCOUNT_LOCK_TTL_SECONDS || '900', 10); //15m
- const REFRESH_TTL = parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || string(7 * 24 * 3600), 10);
+ const REFRESH_TTL = parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || (7 * 24 * 3600), 10);
 
  function getClientIP(req){
   const xff = req.headers.get('x-forwarded-for');

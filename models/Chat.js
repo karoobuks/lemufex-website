@@ -133,7 +133,6 @@ const ChatSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
-    index: true
   }
 }, { timestamps: false });
 

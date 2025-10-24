@@ -60,7 +60,7 @@ import connectedDB from '@/config/database';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { serialize } from 'cookie';
-import { checkRateLimitIP, incrWindow } from '@/lib/authHelpers'; // from earlier helper file
+import { checkRateLimitIp } from '@/lib/authHelpers'; // from earlier helper file
 import { validateRegistration } from '@/middleware/validation';
 import getRedis from '@/lib/redis';
 import validator from 'validator';
@@ -94,7 +94,7 @@ export async function POST(req) {
   try {
     // 1) shared rate limit by IP (via Redis-backed check)
     const ip = getClientIP(req);
-    const ipCheck = await checkRateLimitIP(ip, WINDOW_MS, MAX_IP);
+    const ipCheck = await checkRateLimitIp(ip, WINDOW_MS, MAX_IP);
     if (!ipCheck.allowed) {
       return NextResponse.json({ error: 'Too many requests from this IP. Try later.' }, { status: 429 });
     }

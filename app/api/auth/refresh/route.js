@@ -6,7 +6,7 @@ import connectedDB from "@/config/database";
 import User from "@/models/User";
 
 
-const REFRESH_TTL = parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || stringToBytes('7 * 24 * 3600'), 10);
+const REFRESH_TTL = parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || '7 * 24 * 3600', 10);
 
 export async function POST(req){
     try {

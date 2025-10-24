@@ -80,7 +80,7 @@ const paymentSchema = new mongoose.Schema(
     paymentType: { type: String, enum: ["full", "installment", "completion"], required: true },
     currentInstallment: { type: Number, default: 0 },
     amountDue: { type: Number, default: 0 },
-    reference: { type: String, unique: true, sparse: true, index: true },
+    // reference: { type: String, unique: true, sparse: true, index: true },
     status: {
       type: String,
       enum: ["pending", "success", "completed", "failed"],
@@ -95,7 +95,7 @@ const paymentSchema = new mongoose.Schema(
 
 // Useful compound / partial indexes
 paymentSchema.index({ userId: 1, status: 1 });
-paymentSchema.index({ reference: 1 }, { unique: true, sparse: true });
+// paymentSchema.index({ reference: 1 }, { unique: true, sparse: true });
 // Partial index to find pending payments quickly (small index footprint)
 paymentSchema.index({ userId: 1, course: 1 }, { partialFilterExpression: { status: "pending" } });
 
