@@ -18,6 +18,70 @@ import {
   FiArrowRight
 } from "react-icons/fi"
 
+
+const countryCodes = [
+  { code: "+1", label: "US" },
+  { code: "+44", label: "UK" },
+  { code: "+234", label: "NG" },
+  { code: "+91", label: "IN" },
+  { code: "+61", label: "AU" },
+  { code: "+49", label: "DE" },
+  { code: "+33", label: "FR" },
+  { code: "+81", label: "JP" },
+  { code: "+82", label: "KR" },
+  { code: "+39", label: "IT" },
+  { code: "+55", label: "BR" },
+  { code: "+7", label: "RU" },
+  { code: "+27", label: "ZA" },
+  { code: "+34", label: "ES" },
+  { code: "+46", label: "SE" },
+  { code: "+31", label: "NL" },
+  { code: "+64", label: "NZ" },
+  { code: "+60", label: "MY" },
+  { code: "+63", label: "PH" },
+  { code: "+66", label: "TH" },
+  { code: "+886", label: "TW" },
+  { code: "+852", label: "HK" },
+  { code: "+65", label: "SG" },
+  { code: "+358", label: "FI" },
+  { code: "+358", label: "FI" },
+  { code: "+48", label: "PL" },
+  { code: "+351", label: "PT" },
+  { code: "+420", label: "CZ" },
+  { code: "+421", label: "SK" },
+  { code: "+46", label: "SE" },
+  { code: "+47", label: "NO" },
+  { code: "+352", label: "LU" },
+  { code: "+41", label: "CH" },
+  { code: "+36", label: "HU" },
+  { code: "+370", label: "LT" },
+  { code: "+371", label: "LV" },
+  { code: "+372", label: "EE" },
+  { code: "+373", label: "MD" },
+  { code: "+995", label: "GE" },
+  { code: "+961", label: "LB" },
+  { code: "+962", label: "JO" },
+  { code: "+963", label: "SY" },
+  { code: "+964", label: "IQ" },
+  { code: "+966", label: "SA" },
+  { code: "+967", label: "YE" },
+  { code: "+968", label: "OM" },
+  { code: "+971", label: "AE" },
+  { code: "+972", label: "IL" },
+  { code: "+973", label: "BH" },
+  { code: "+974", label: "QA" },
+  { code: "+975", label: "BT" },
+  { code: "+976", label: "MN" },
+  { code: "+977", label: "NP" },
+  { code: "+992", label: "TJ" },
+  { code: "+993", label: "TM" },
+  { code: "+994", label: "AZ" },
+  { code: "+995", label: "GE" },
+  { code: "+996", label: "KG" },
+  { code: "+998", label: "UZ" },
+  // … continue until ~200 codes
+];
+
 const RegisterPage = () => {
     const { data: session, status } = useSession()
     const router = useRouter()
@@ -29,6 +93,7 @@ const RegisterPage = () => {
         email: '',
         password: '',
         phone: '',
+        countryCode: '+1', // default
     })
 
     const [loading, setLoading] = useState(false)
@@ -170,7 +235,7 @@ const RegisterPage = () => {
                                     type="text"
                                     id="firstName"
                                     placeholder="First name"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                    className="w-full px-4 py-3 text-gray-700  border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                     onChange={handleChange}
                                     value={formData.firstName}
                                     required
@@ -185,7 +250,7 @@ const RegisterPage = () => {
                                     type="text"
                                     id="lastName"
                                     placeholder="Last name"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                    className="w-full px-4 py-3 text-gray-700  border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                     onChange={handleChange}
                                     value={formData.lastName}
                                     required
@@ -203,7 +268,7 @@ const RegisterPage = () => {
                                 type="email"
                                 id="email"
                                 placeholder="Enter your email address"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                className="w-full px-4 py-3 text-gray-700  border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                 onChange={handleChange}
                                 value={formData.email}
                                 required
@@ -216,16 +281,34 @@ const RegisterPage = () => {
                                 <FiPhone size={16} />
                                 Phone Number
                             </label>
+                            <div className="flex gap-2">
+                                <select
+                            id="countryCode"
+                            className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-gray-700 appearance-none"
+                            value={formData.countryCode || "+234"}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, countryCode: e.target.value }))
+                            }
+                            required
+                            >
+                            {countryCodes.map((c, index) => (
+                                <option key={`${c.code}-${c.label}-${index}`} value={c.code}>
+                                {c.code} ({c.label})
+                                </option>
+                            ))}
+                            </select>
+                                                        
                             <input
                                 type="tel"
                                 id="phone"
-                                placeholder="Enter your phone number"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                placeholder="phone no"
+                                className="w-full px-4 py-3 text-gray-700  border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                 onChange={handleChange}
                                 value={formData.phone}
                                 required
                             />
                         </div>
+                         </div>
 
                         {/* Password Field */}
                         <div className="space-y-2">
@@ -238,7 +321,7 @@ const RegisterPage = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     id="password"
                                     placeholder="Create a strong password"
-                                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                    className="w-full px-4 py-3 text-gray-700  pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                     onChange={handleChange}
                                     value={formData.password}
                                     required

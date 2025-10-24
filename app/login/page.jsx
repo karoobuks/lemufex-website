@@ -493,7 +493,7 @@ const LoginPage = () => {
                                 type="email"
                                 id="email"
                                 placeholder="Enter your email address"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                 onChange={handleChange}
                                 value={formData.email}
                                 required
@@ -511,7 +511,7 @@ const LoginPage = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     id="password"
                                     placeholder="Enter your password"
-                                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                    className="w-full px-4 py-3 text-gray-700  pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
                                     onChange={handleChange}
                                     value={formData.password}
                                     required
