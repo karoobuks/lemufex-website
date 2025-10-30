@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {FaArrowLeft} from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 export default function SchedulePage() {
   const [latest, setLatest] = useState(null);
   const [history, setHistory] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const load = async () => {
@@ -24,8 +27,16 @@ export default function SchedulePage() {
         <h1 className="text-3xl font-bold">Training Schedule</h1>
         <p className="text-[#E5E7EB]">Always up to date • Versioned history</p>
       </header>
-
+         <div>    
+   <button 
+          onClick={() => router.back()}
+           className="inline-flex items-center gap-2 text-[#002B5B] hover:text-[#FE9900] mb-4 transition-colors"
+        >
+   <FaArrowLeft /> Back to Dashboard
+    </button>
+    </div> 
       <main className="max-w-6xl mx-auto p-6 grid lg:grid-cols-3 gap-6">
+        
         {/* Latest */}
         <section className="lg:col-span-2 bg-white rounded-2xl shadow p-6">
           <h2 className="text-xl font-semibold text-[#002D62] mb-4">Latest Schedule</h2>

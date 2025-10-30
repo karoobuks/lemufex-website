@@ -1,4 +1,63 @@
 
+// "use client";
+
+// import Link from "next/link";
+// import { FaTools, FaDraftingCompass, FaCogs } from "react-icons/fa";
+
+// const services = [
+//   {
+//     title: "Civil & Structural Engineering",
+//     description: "From road and bridge construction to structural design and restoration projects.",
+//     icon: <FaDraftingCompass className="text-4xl text-[#FE9900]" />,
+//     link: "/services/civil-structural",
+//   },
+//   {
+//     title: "Mechanical Engineering",
+//     description: "HVAC systems, mechanical installations, and plant equipment solutions.",
+//     icon: <FaCogs className="text-4xl text-[#FE9900]" />,
+//     link: "/services/mechanical",
+//   },
+//   {
+//     title: "General Engineering Services",
+//     description: "Broad engineering support tailored to your industry and infrastructure.",
+//     icon: <FaTools className="text-4xl text-[#FE9900]" />,
+//     link: "/services/general",
+//   },
+// ];
+
+// const ServicesPreview = () => {
+//   return (
+//     <section className="py-16 bg-[#F4F6F8]">
+//       <div className="max-w-6xl mx-auto px-4 text-center">
+//         <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#002B5B]">Our Core Services</h2>
+//         <p className="text-[#6B7280] mb-12 max-w-2xl mx-auto">
+//           Lemufex Engineering Group offers innovative and reliable solutions across multiple engineering domains.
+//         </p>
+
+//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+//           {services.map((service, idx) => (
+//             <div
+//               key={idx}
+//               className="bg-white shadow-lg rounded-xl p-6 text-left hover:shadow-xl transition duration-300 border border-[#E5E7EB]"
+//             >
+//               <div className="mb-4">{service.icon}</div>
+//               <h3 className="text-xl font-semibold text-[#002B5B] mb-2">{service.title}</h3>
+//               <p className="text-[#6B7280] mb-4">{service.description}</p>
+//               <Link href={service.link} className="text-[#FE9900] font-semibold hover:underline">
+//                 Request Quote →
+//               </Link>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default ServicesPreview;
+
+
+// app/services/page.jsx
 "use client";
 
 import Link from "next/link";
@@ -6,45 +65,58 @@ import { FaTools, FaDraftingCompass, FaCogs } from "react-icons/fa";
 
 const services = [
   {
+    id: "civil-structural",
     title: "Civil & Structural Engineering",
-    description: "From road and bridge construction to structural design and restoration projects.",
+    description:
+      "From road and bridge construction to structural design and restoration projects.",
     icon: <FaDraftingCompass className="text-4xl text-[#FE9900]" />,
-    link: "/services/civil-structural",
   },
   {
+    id: "mechanical",
     title: "Mechanical Engineering",
-    description: "HVAC systems, mechanical installations, and plant equipment solutions.",
+    description:
+      "HVAC systems, mechanical installations, and plant equipment solutions.",
     icon: <FaCogs className="text-4xl text-[#FE9900]" />,
-    link: "/services/mechanical",
   },
   {
+    id: "general",
     title: "General Engineering Services",
-    description: "Broad engineering support tailored to your industry and infrastructure.",
+    description:
+      "Broad engineering support tailored to your industry and infrastructure.",
     icon: <FaTools className="text-4xl text-[#FE9900]" />,
-    link: "/services/general",
   },
 ];
 
-const ServicesPreview = () => {
+export default function ServicesPage() {
   return (
-    <section className="py-16 bg-[#F4F6F8]">
+    <section className="py-16 bg-[#F4F6F8] min-h-screen">
       <div className="max-w-6xl mx-auto px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#002B5B]">Our Core Services</h2>
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 text-[#002B5B]">
+          Our Core Services
+        </h1>
         <p className="text-[#6B7280] mb-12 max-w-2xl mx-auto">
-          Lemufex Engineering Group offers innovative and reliable solutions across multiple engineering domains.
+          Lemufex Engineering Group offers innovative and reliable solutions
+          across multiple engineering domains.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {services.map((service, idx) => (
+          {services.map(({ id, title, description, icon }) => (
             <div
-              key={idx}
+              key={id}
               className="bg-white shadow-lg rounded-xl p-6 text-left hover:shadow-xl transition duration-300 border border-[#E5E7EB]"
             >
-              <div className="mb-4">{service.icon}</div>
-              <h3 className="text-xl font-semibold text-[#002B5B] mb-2">{service.title}</h3>
-              <p className="text-[#6B7280] mb-4">{service.description}</p>
-              <Link href={service.link} className="text-[#FE9900] font-semibold hover:underline">
-                Request Quote →
+              <div className="mb-4">{icon}</div>
+              <h3 className="text-xl font-semibold text-[#002B5B] mb-2">
+                {title}
+              </h3>
+              <p className="text-[#6B7280] mb-4">{description}</p>
+
+              {/* ✅ Fully functional route to /request-quote?service=<id> */}
+              <Link
+                href={`/services`}
+                className="text-[#FE9900] font-semibold hover:underline"
+              >
+                See More →
               </Link>
             </div>
           ))}
@@ -52,6 +124,4 @@ const ServicesPreview = () => {
       </div>
     </section>
   );
-};
-
-export default ServicesPreview;
+}

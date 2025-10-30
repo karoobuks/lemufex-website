@@ -46,10 +46,11 @@
 import connectedDB from "@/config/database";
 import Trainee from "@/models/Trainee";
 import { NextResponse } from "next/server";
+import Course from "@/models/Course";
 
 export async function GET(req, { params }) {
   await connectedDB();
-  const { userId } = params;
+  const { userId } = await params;
 
   try {
     const trainee = await Trainee.findOne({ user: userId })

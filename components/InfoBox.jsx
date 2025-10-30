@@ -54,7 +54,7 @@ export default function InfoBox() {
           </ul>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/request-quotes" className="bg-[#FE9900] text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-[#cc7d00] transition duration-300">
+            <Link href="/services" className="bg-[#FE9900] text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-[#cc7d00] transition duration-300">
               Request a Quote
             </Link>
             <Link href='/services'>

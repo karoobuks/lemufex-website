@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react";
+import {FaArrowLeft} from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 
 
@@ -9,6 +11,7 @@ export default function ProgressPage(){
     const [trainings, setTrainings] = useState([]);
     const {data:session, status} = useSession()
     const userId = session?.user?.id
+    const router = useRouter();
 
     useEffect(() =>{
         if(!userId) return;
@@ -43,6 +46,14 @@ export default function ProgressPage(){
 
     return(
         <div className="min-h-screen bg-[#F9FAFB] p-6">
+
+             <button 
+                onClick={() => router.back()}
+               className="inline-flex items-center gap-2 text-[#002B5B] hover:text-[#FE9900] mb-4 transition-colors"
+                    >
+                <FaArrowLeft /> Back to Dashboard
+            </button>
+
             <h1 className="text-3xl font-bold text-[#FE9900] mb-6">Progress Tracker</h1>
 
             <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200 mb-8">
