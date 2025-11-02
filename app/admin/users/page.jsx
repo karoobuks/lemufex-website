@@ -236,35 +236,97 @@ export default function UsersPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                    {/* Mobile Card View */}
+                    <div className="block sm:hidden">
+                        {users.map((user) => (
+                            <div key={user._id} className="p-4 border-b border-gray-200 last:border-b-0">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <div className="flex-shrink-0 h-10 w-10">
+                                            {user.profilePicture || user.image || user.avatar ? (
+                                                <img
+                                                    src={user.profilePicture || user.image || user.avatar}
+                                                    alt={`${user.firstName} ${user.lastName}` || 'User'}
+                                                    className="h-10 w-10 rounded-full object-cover border-2 border-[#FE9900] cursor-pointer hover:opacity-80 transition-opacity"
+                                                    onClick={() => openImageViewer(user.profilePicture || user.image || user.avatar, `${user.firstName} ${user.lastName}`)}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none'
+                                                        e.target.parentNode.querySelector('.fallback-avatar').style.display = 'flex'
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div className={`fallback-avatar h-10 w-10 rounded-full bg-[#FE9900] flex items-center justify-center ${(user.profilePicture || user.image || user.avatar) ? 'hidden' : 'flex'}`}>
+                                                <span className="text-white font-semibold text-sm">
+                                                    {user.firstName?.charAt(0)?.toUpperCase() || user.lastName?.charAt(0)?.toUpperCase() || 'U'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-sm font-medium text-gray-900 truncate">
+                                                {`${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A'}
+                                            </div>
+                                            <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                                        </div>
+                                    </div>
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${
+                                        user.role === 'admin' 
+                                            ? 'bg-red-100 text-red-800'
+                                            : user.role === 'trainee'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {user.role}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <span>Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                    })}</span>
+                                    <button 
+                                        onClick={() => viewUser(user)}
+                                        className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200 p-2"
+                                    >
+                                        <FiEye size={14} />
+                                        View
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         <div className="flex items-center gap-2">
                                             <FiUser size={14} />
                                             User
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                                         <div className="flex items-center gap-2">
                                             <FiMail size={14} />
                                             Contact
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         <div className="flex items-center gap-2">
                                             <FiShield size={14} />
                                             Role
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                         <div className="flex items-center gap-2">
                                             <FiCalendar size={14} />
                                             Joined
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
@@ -272,14 +334,14 @@ export default function UsersPage() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {users.map((user) => (
                                     <tr key={user._id} className="hover:bg-gray-50 transition-colors duration-200">
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-3 lg:px-6 py-3 lg:py-4">
                                             <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
+                                                <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                                                     {user.profilePicture || user.image || user.avatar ? (
                                                         <img
                                                             src={user.profilePicture || user.image || user.avatar}
                                                             alt={`${user.firstName} ${user.lastName}` || 'User'}
-                                                            className="h-10 w-10 rounded-full object-cover border-2 border-[#FE9900] cursor-pointer hover:opacity-80 transition-opacity"
+                                                            className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border-2 border-[#FE9900] cursor-pointer hover:opacity-80 transition-opacity"
                                                             onClick={() => openImageViewer(user.profilePicture || user.image || user.avatar, `${user.firstName} ${user.lastName}`)}
                                                             onError={(e) => {
                                                                 e.target.style.display = 'none'
@@ -287,23 +349,24 @@ export default function UsersPage() {
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <div className={`fallback-avatar h-10 w-10 rounded-full bg-[#FE9900] flex items-center justify-center ${(user.profilePicture || user.image || user.avatar) ? 'hidden' : 'flex'}`}>
-                                                        <span className="text-white font-semibold text-sm">
+                                                    <div className={`fallback-avatar h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#FE9900] flex items-center justify-center ${(user.profilePicture || user.image || user.avatar) ? 'hidden' : 'flex'}`}>
+                                                        <span className="text-white font-semibold text-xs sm:text-sm">
                                                             {user.firstName?.charAt(0)?.toUpperCase() || user.lastName?.charAt(0)?.toUpperCase() || 'U'}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                <div className="ml-2 sm:ml-4 min-w-0">
+                                                    <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                                                         {`${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A'}
                                                     </div>
+                                                    <div className="text-xs text-gray-500 md:hidden truncate">{user.email}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{user.email}</div>
+                                        <td className="px-3 lg:px-6 py-3 lg:py-4 hidden md:table-cell">
+                                            <div className="text-xs sm:text-sm text-gray-900 max-w-[150px] truncate">{user.email}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-3 lg:px-6 py-3 lg:py-4">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                                 user.role === 'admin' 
                                                     ? 'bg-red-100 text-red-800'
@@ -314,20 +377,20 @@ export default function UsersPage() {
                                                 {user.role}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-3 lg:px-6 py-3 lg:py-4 text-xs sm:text-sm text-gray-500 hidden lg:table-cell">
                                             {new Date(user.createdAt).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric'
                                             })}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td className="px-3 lg:px-6 py-3 lg:py-4 text-xs sm:text-sm font-medium">
                                             <button 
                                                 onClick={() => viewUser(user)}
-                                                className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200"
+                                                className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200 p-1"
                                             >
                                                 <FiEye size={14} />
-                                                View
+                                                <span className="hidden sm:inline">View</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -335,6 +398,7 @@ export default function UsersPage() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
             </div>
 
@@ -376,7 +440,7 @@ export default function UsersPage() {
             {/* User Details Modal */}
             {showModal && selectedUser && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
                         {/* Modal Header */}
                         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
                             <div className="flex items-center gap-3">
@@ -529,7 +593,7 @@ export default function UsersPage() {
                         <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
                             <button
                                 onClick={closeModal}
-                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                className="px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base w-full sm:w-auto"
                             >
                                 Close
                             </button>
@@ -541,25 +605,25 @@ export default function UsersPage() {
             {/* Image Viewer Modal */}
             {imageViewer.show && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] p-4"
+                    className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] p-2 sm:p-4"
                     onClick={closeImageViewer}
                 >
-                    <div className="relative max-w-4xl max-h-full">
+                    <div className="relative max-w-4xl max-h-full w-full">
                         <button
                             onClick={closeImageViewer}
-                            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+                            className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-gray-300 z-10 p-2 bg-black bg-opacity-50 rounded-full"
                         >
-                            <FiX size={32} />
+                            <FiX size={20} className="sm:w-8 sm:h-8" />
                         </button>
                         <img
                             src={imageViewer.src}
                             alt={imageViewer.name}
-                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                            className="max-w-full max-h-[90vh] object-contain rounded-lg mx-auto"
                             onClick={(e) => e.stopPropagation()}
                         />
                         {imageViewer.name && (
-                            <div className="absolute bottom-4 left-4 right-4 text-center">
-                                <p className="text-white text-lg font-medium bg-black bg-opacity-50 rounded-lg px-4 py-2">
+                            <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 text-center">
+                                <p className="text-white text-sm sm:text-lg font-medium bg-black bg-opacity-50 rounded-lg px-2 py-1 sm:px-4 sm:py-2">
                                     {imageViewer.name}
                                 </p>
                             </div>

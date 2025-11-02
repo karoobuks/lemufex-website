@@ -131,21 +131,19 @@ export default function AdminLayout({ children }){
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col">
-                <main className={`
-                    flex-1 p-3 sm:p-4 md:p-6 transition-all duration-300 ease-in-out
-                    ${isMobile 
-                        ? 'ml-0 mt-16' 
-                        : isCollapsed 
-                            ? 'ml-16' 
-                            : 'ml-64'
-                    }
-                `}>
-                    <div className="max-w-7xl mx-auto w-full">
-                        {children}
-                    </div>
-                </main>
-            </div>
+            <main className={`
+                flex-1 p-3 sm:p-4 md:p-6 transition-all duration-300 ease-in-out
+                ${isMobile 
+                    ? 'ml-0 mt-16' 
+                    : isCollapsed 
+                        ? 'ml-16' 
+                        : 'ml-64'
+                }
+            `}>
+                <div className="max-w-7xl mx-auto w-full">
+                    {children}
+                </div>
+            </main>
         </div>
     )
 }
