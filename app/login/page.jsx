@@ -396,21 +396,20 @@ const LoginPage = () => {
         redirect: false,
         email: formData.email,
         password: formData.password,
-        rememberMe: rememberMe, // pass checkbox state
+        rememberMe: rememberMe,
         callbackUrl,
       })
 
-      if (res.error) {
-        // Map backend error messages from authOptions
+      if (res?.error) {
         let message = "Invalid email or password"
         if (res.error.includes("Account locked")) message = "Account locked due to repeated failed attempts. Try later."
         if (res.error.includes("Too many requests")) message = "Too many requests from this IP. Try again later."
         setError(message)
         toast.error(message)
-      } else if (res.ok) {
+      } else if (res?.ok) {
         toast.success('Login successful! Welcome back.')
-        router.refresh()
-        router.push(res.url || callbackUrl)
+        // Force session update and redirect
+        window.location.href = res.url || callbackUrl
       }
     } catch (err) {
       console.error(err)

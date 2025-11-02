@@ -98,24 +98,24 @@ export default function AdminResourcesPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-[#FE9900] rounded-lg">
-            <FiUpload className="text-white" size={24} />
+            <FiUpload className="text-white" size={20} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Resource Management</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Resource Management</h1>
         </div>
-        <p className="text-gray-600">Upload and manage learning resources for different tracks</p>
+        <p className="text-sm sm:text-base text-gray-600">Upload and manage learning resources for different tracks</p>
       </div>
 
       {/* Upload Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" encType="multipart/form-data">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Title Input */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <FiType size={16} />
+                <FiType size={14} />
                 Resource Title
               </label>
               <input
@@ -123,7 +123,7 @@ export default function AdminResourcesPage() {
                 placeholder="Enter resource title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-700 placeholder:font-semibold"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-700 placeholder:font-semibold"
                 required
               />
             </div>
@@ -131,13 +131,13 @@ export default function AdminResourcesPage() {
             {/* Track Selection */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <FiTag size={16} />
+                <FiTag size={14} />
                 Track Category
               </label>
               <select
                 value={track}
                 onChange={(e) => setTrack(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 font-semibold text-gray-800"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 font-semibold text-gray-800"
                 required
               >
                 <option value="Automation">Automation</option>
@@ -150,7 +150,7 @@ export default function AdminResourcesPage() {
           {/* Description */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FiFileText size={16} />
+              <FiFileText size={14} />
               Description
             </label>
             <textarea
@@ -158,18 +158,18 @@ export default function AdminResourcesPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 resize-none placeholder:text-gray-700 placeholder:font-semibold"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 resize-none placeholder:text-gray-700 placeholder:font-semibold"
             />
           </div>
 
           {/* File Upload */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FiFile size={16} />
+              <FiFile size={14} />
               Upload File (PDF only)
             </label>
             <div 
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+              className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-8 text-center transition-all duration-200 ${
                 dragActive 
                   ? 'border-[#FE9900] bg-orange-50' 
                   : file 
@@ -188,21 +188,21 @@ export default function AdminResourcesPage() {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 required
               />
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {file ? (
                   <>
-                    <FiCheck className="mx-auto text-green-500" size={48} />
+                    <FiCheck className="mx-auto text-green-500" size={32} />
                     <div>
-                      <p className="text-lg font-medium text-green-700">{file.name}</p>
-                      <p className="text-sm text-green-600">File selected successfully</p>
+                      <p className="text-sm sm:text-lg font-medium text-green-700 break-all">{file.name}</p>
+                      <p className="text-xs sm:text-sm text-green-600">File selected successfully</p>
                     </div>
                   </>
                 ) : (
                   <>
-                    <FiUpload className="mx-auto text-gray-400" size={48} />
+                    <FiUpload className="mx-auto text-gray-400" size={32} />
                     <div>
-                      <p className="text-lg font-medium text-gray-700">Drop your PDF file here</p>
-                      <p className="text-sm text-gray-500">or click to browse</p>
+                      <p className="text-sm sm:text-lg font-medium text-gray-700">Drop your PDF file here</p>
+                      <p className="text-xs sm:text-sm text-gray-500">or click to browse</p>
                     </div>
                   </>
                 )}
@@ -215,14 +215,15 @@ export default function AdminResourcesPage() {
             <button 
               type="submit" 
               disabled={loading}
-              className="flex items-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="flex items-center justify-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base w-full sm:w-auto"
             >
               {loading ? (
                 <TypingDots />
               ) : (
                 <>
-                  <FiPlus size={20} />
-                  Add Resource
+                  <FiPlus size={16} />
+                  <span className="hidden sm:inline">Add Resource</span>
+                  <span className="sm:hidden">Add</span>
                 </>
               )}
             </button>

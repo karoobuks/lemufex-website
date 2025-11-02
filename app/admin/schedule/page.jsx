@@ -130,28 +130,28 @@ export default function AdminSchedulesPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-[#FE9900] rounded-lg">
-            <FiCalendar className="text-white" size={24} />
+            <FiCalendar className="text-white" size={20} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Schedule Management</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Schedule Management</h1>
         </div>
-        <p className="text-gray-600">Upload and manage training schedules with automatic versioning</p>
+        <p className="text-sm sm:text-base text-gray-600">Upload and manage training schedules with automatic versioning</p>
       </div>
 
       {/* Upload Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <div className="flex items-center gap-2 mb-6">
-          <FiUpload className="text-[#FE9900]" size={20} />
-          <h2 className="text-xl font-bold text-gray-900">Upload New Schedule</h2>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <FiUpload className="text-[#FE9900]" size={18} />
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">Upload New Schedule</h2>
         </div>
         
-        <form onSubmit={submit} className="space-y-6">
+        <form onSubmit={submit} className="space-y-4 sm:space-y-6">
           {/* Title Input */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FiFile size={16} />
+              <FiFile size={14} />
               Schedule Title
             </label>
             <input
@@ -159,7 +159,7 @@ export default function AdminSchedulesPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., April 2024 Training Schedule"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-600 placeholder:font-medium"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-600 placeholder:font-medium"
               required
             />
           </div>
@@ -167,11 +167,11 @@ export default function AdminSchedulesPage() {
           {/* File Upload */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FiFile size={16} />
+              <FiFile size={14} />
               Upload PDF File
             </label>
             <div 
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+              className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-8 text-center transition-all duration-200 ${
                 dragActive 
                   ? 'border-[#FE9900] bg-orange-50' 
                   : file 
@@ -190,21 +190,21 @@ export default function AdminSchedulesPage() {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 required
               />
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {file ? (
                   <>
-                    <FiCheck className="mx-auto text-green-500" size={48} />
+                    <FiCheck className="mx-auto text-green-500" size={32} />
                     <div>
-                      <p className="text-lg font-medium text-green-700">{file.name}</p>
-                      <p className="text-sm text-green-600">File selected successfully</p>
+                      <p className="text-sm sm:text-lg font-medium text-green-700 break-all">{file.name}</p>
+                      <p className="text-xs sm:text-sm text-green-600">File selected successfully</p>
                     </div>
                   </>
                 ) : (
                   <>
-                    <FiUpload className="mx-auto text-gray-400" size={48} />
+                    <FiUpload className="mx-auto text-gray-400" size={32} />
                     <div>
-                      <p className="text-lg font-medium text-gray-700">Drop your PDF file here</p>
-                      <p className="text-sm text-gray-500">or click to browse</p>
+                      <p className="text-sm sm:text-lg font-medium text-gray-700">Drop your PDF file here</p>
+                      <p className="text-xs sm:text-sm text-gray-500">or click to browse</p>
                     </div>
                   </>
                 )}
@@ -217,14 +217,15 @@ export default function AdminSchedulesPage() {
             <button
               type="submit"
               disabled={posting || !title || !file}
-              className="flex items-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="flex items-center justify-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base w-full sm:w-auto"
             >
               {posting ? (
                 <TypingDots />
               ) : (
                 <>
-                  <FiUpload size={20} />
-                  Upload Schedule
+                  <FiUpload size={16} />
+                  <span className="hidden sm:inline">Upload Schedule</span>
+                  <span className="sm:hidden">Upload</span>
                 </>
               )}
             </button>
@@ -233,10 +234,10 @@ export default function AdminSchedulesPage() {
       </div>
 
       {/* Schedules List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <FiClock className="text-[#FE9900]" size={20} />
-          <h3 className="text-xl font-bold text-gray-900">Schedule History</h3>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <FiClock className="text-[#FE9900]" size={18} />
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Schedule History</h3>
         </div>
         
         {loading ? (
@@ -250,22 +251,22 @@ export default function AdminSchedulesPage() {
             <p className="text-gray-400 text-sm">Upload your first schedule to get started!</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {items.map((s) => (
-              <div key={s._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FE9900] text-white">
+              <div key={s._id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow duration-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FE9900] text-white flex-shrink-0">
                         v{s.versionNumber}
                       </span>
-                      <h4 className="text-lg font-semibold text-gray-900">{s.title}</h4>
+                      <h4 className="text-sm sm:text-lg font-semibold text-gray-900 truncate">{s.title}</h4>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <FiClock size={14} />
-                      <span>Uploaded {new Date(s.createdAt).toLocaleDateString('en-US', {
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                      <FiClock size={12} />
+                      <span className="truncate">Uploaded {new Date(s.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
-                        month: 'long',
+                        month: 'short',
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
@@ -273,22 +274,22 @@ export default function AdminSchedulesPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <a
                       href={s.fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-xs sm:text-sm"
                     >
-                      <FiEye size={16} />
-                      View
+                      <FiEye size={14} />
+                      <span className="hidden sm:inline">View</span>
                     </a>
                     <button
                       onClick={() => del(s._id)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200"
+                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200 text-xs sm:text-sm"
                     >
-                      <FiTrash2 size={16} />
-                      Delete
+                      <FiTrash2 size={14} />
+                      <span className="hidden sm:inline">Delete</span>
                     </button>
                   </div>
                 </div>

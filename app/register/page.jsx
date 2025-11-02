@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { FcGoogle } from 'react-icons/fc'
 import { useRouter } from "next/navigation"
@@ -20,66 +20,65 @@ import {
 
 
 const countryCodes = [
-  { code: "+1", label: "US" },
-  { code: "+44", label: "UK" },
-  { code: "+234", label: "NG" },
-  { code: "+91", label: "IN" },
-  { code: "+61", label: "AU" },
-  { code: "+49", label: "DE" },
-  { code: "+33", label: "FR" },
-  { code: "+81", label: "JP" },
-  { code: "+82", label: "KR" },
-  { code: "+39", label: "IT" },
-  { code: "+55", label: "BR" },
-  { code: "+7", label: "RU" },
-  { code: "+27", label: "ZA" },
-  { code: "+34", label: "ES" },
-  { code: "+46", label: "SE" },
-  { code: "+31", label: "NL" },
-  { code: "+64", label: "NZ" },
-  { code: "+60", label: "MY" },
-  { code: "+63", label: "PH" },
-  { code: "+66", label: "TH" },
-  { code: "+886", label: "TW" },
-  { code: "+852", label: "HK" },
-  { code: "+65", label: "SG" },
-  { code: "+358", label: "FI" },
-  { code: "+358", label: "FI" },
-  { code: "+48", label: "PL" },
-  { code: "+351", label: "PT" },
-  { code: "+420", label: "CZ" },
-  { code: "+421", label: "SK" },
-  { code: "+46", label: "SE" },
-  { code: "+47", label: "NO" },
-  { code: "+352", label: "LU" },
-  { code: "+41", label: "CH" },
-  { code: "+36", label: "HU" },
-  { code: "+370", label: "LT" },
-  { code: "+371", label: "LV" },
-  { code: "+372", label: "EE" },
-  { code: "+373", label: "MD" },
-  { code: "+995", label: "GE" },
-  { code: "+961", label: "LB" },
-  { code: "+962", label: "JO" },
-  { code: "+963", label: "SY" },
-  { code: "+964", label: "IQ" },
-  { code: "+966", label: "SA" },
-  { code: "+967", label: "YE" },
-  { code: "+968", label: "OM" },
-  { code: "+971", label: "AE" },
-  { code: "+972", label: "IL" },
-  { code: "+973", label: "BH" },
-  { code: "+974", label: "QA" },
-  { code: "+975", label: "BT" },
-  { code: "+976", label: "MN" },
-  { code: "+977", label: "NP" },
-  { code: "+992", label: "TJ" },
-  { code: "+993", label: "TM" },
-  { code: "+994", label: "AZ" },
-  { code: "+995", label: "GE" },
-  { code: "+996", label: "KG" },
-  { code: "+998", label: "UZ" },
-  // … continue until ~200 codes
+  { code: "+234", country: "Nigeria", flag: "🇳🇬" },
+  { code: "+1", country: "United States", flag: "🇺🇸" },
+  { code: "+44", country: "United Kingdom", flag: "🇬🇧" },
+  { code: "+91", country: "India", flag: "🇮🇳" },
+  { code: "+61", country: "Australia", flag: "🇦🇺" },
+  { code: "+49", country: "Germany", flag: "🇩🇪" },
+  { code: "+33", country: "France", flag: "🇫🇷" },
+  { code: "+81", country: "Japan", flag: "🇯🇵" },
+  { code: "+82", country: "South Korea", flag: "🇰🇷" },
+  { code: "+39", country: "Italy", flag: "🇮🇹" },
+  { code: "+55", country: "Brazil", flag: "🇧🇷" },
+  { code: "+7", country: "Russia", flag: "🇷🇺" },
+  { code: "+27", country: "South Africa", flag: "🇿🇦" },
+  { code: "+34", country: "Spain", flag: "🇪🇸" },
+  { code: "+31", country: "Netherlands", flag: "🇳🇱" },
+  { code: "+46", country: "Sweden", flag: "🇸🇪" },
+  { code: "+47", country: "Norway", flag: "🇳🇴" },
+  { code: "+41", country: "Switzerland", flag: "🇨🇭" },
+  { code: "+43", country: "Austria", flag: "🇦🇹" },
+  { code: "+32", country: "Belgium", flag: "🇧🇪" },
+  { code: "+45", country: "Denmark", flag: "🇩🇰" },
+  { code: "+358", country: "Finland", flag: "🇫🇮" },
+  { code: "+48", country: "Poland", flag: "🇵🇱" },
+  { code: "+351", country: "Portugal", flag: "🇵🇹" },
+  { code: "+420", country: "Czech Republic", flag: "🇨🇿" },
+  { code: "+36", country: "Hungary", flag: "🇭🇺" },
+  { code: "+30", country: "Greece", flag: "🇬🇷" },
+  { code: "+90", country: "Turkey", flag: "🇹🇷" },
+  { code: "+20", country: "Egypt", flag: "🇪🇬" },
+  { code: "+212", country: "Morocco", flag: "🇲🇦" },
+  { code: "+233", country: "Ghana", flag: "🇬🇭" },
+  { code: "+254", country: "Kenya", flag: "🇰🇪" },
+  { code: "+256", country: "Uganda", flag: "🇺🇬" },
+  { code: "+255", country: "Tanzania", flag: "🇹🇿" },
+  { code: "+86", country: "China", flag: "🇨🇳" },
+  { code: "+65", country: "Singapore", flag: "🇸🇬" },
+  { code: "+60", country: "Malaysia", flag: "🇲🇾" },
+  { code: "+66", country: "Thailand", flag: "🇹🇭" },
+  { code: "+84", country: "Vietnam", flag: "🇻🇳" },
+  { code: "+63", country: "Philippines", flag: "🇵🇭" },
+  { code: "+62", country: "Indonesia", flag: "🇮🇩" },
+  { code: "+92", country: "Pakistan", flag: "🇵🇰" },
+  { code: "+880", country: "Bangladesh", flag: "🇧🇩" },
+  { code: "+94", country: "Sri Lanka", flag: "🇱🇰" },
+  { code: "+971", country: "UAE", flag: "🇦🇪" },
+  { code: "+966", country: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+974", country: "Qatar", flag: "🇶🇦" },
+  { code: "+973", country: "Bahrain", flag: "🇧🇭" },
+  { code: "+965", country: "Kuwait", flag: "🇰🇼" },
+  { code: "+968", country: "Oman", flag: "🇴🇲" },
+  { code: "+961", country: "Lebanon", flag: "🇱🇧" },
+  { code: "+972", country: "Israel", flag: "🇮🇱" },
+  { code: "+52", country: "Mexico", flag: "🇲🇽" },
+  { code: "+54", country: "Argentina", flag: "🇦🇷" },
+  { code: "+56", country: "Chile", flag: "🇨🇱" },
+  { code: "+57", country: "Colombia", flag: "🇨🇴" },
+  { code: "+51", country: "Peru", flag: "🇵🇪" },
+  { code: "+58", country: "Venezuela", flag: "🇻🇪" },
+  { code: "+64", country: "New Zealand", flag: "🇳🇿" }
 ];
 
 const RegisterPage = () => {
@@ -87,13 +86,15 @@ const RegisterPage = () => {
     const router = useRouter()
     const [error, setError] = useState('')
     const [showPassword, setShowPassword] = useState(false)
+    const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+    const dropdownRef = useRef(null)
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         email: '',
         password: '',
         phone: '',
-        countryCode: '+1', // default
+        countryCode: '+234', // default to Nigeria
     })
 
     const [loading, setLoading] = useState(false)
@@ -104,6 +105,18 @@ const RegisterPage = () => {
             router.push('/')
         }
     }, [status, router])
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowCountryDropdown(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     const handleChange = (e) => {
         setFormData((prev) => ({
@@ -282,33 +295,56 @@ const RegisterPage = () => {
                                 Phone Number
                             </label>
                             <div className="flex gap-2">
-                                <select
-                            id="countryCode"
-                            className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-gray-700 appearance-none"
-                            value={formData.countryCode || "+234"}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, countryCode: e.target.value }))
-                            }
-                            required
-                            >
-                            {countryCodes.map((c, index) => (
-                                <option key={`${c.code}-${c.label}-${index}`} value={c.code}>
-                                {c.code} ({c.label})
-                                </option>
-                            ))}
-                            </select>
-                                                        
-                            <input
-                                type="tel"
-                                id="phone"
-                                placeholder="phone no"
-                                className="w-full px-4 py-3 text-gray-700  border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
-                                onChange={handleChange}
-                                value={formData.phone}
-                                required
-                            />
+                                <div className="relative" ref={dropdownRef}>
+                                    {/* Custom Dropdown Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                                        className="w-20 sm:w-24 md:w-28 px-2 sm:px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-gray-700 bg-white text-xs sm:text-sm cursor-pointer flex items-center justify-between hover:bg-gray-50 transition-colors"
+                                    >
+                                        <span className="flex items-center gap-1 truncate">
+                                            {countryCodes.find(c => c.code === formData.countryCode)?.flag}
+                                            <span className="hidden sm:inline">{formData.countryCode}</span>
+                                        </span>
+                                        <svg className={`w-3 h-3 text-gray-400 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    
+                                    {/* Custom Dropdown Menu */}
+                                    {showCountryDropdown && (
+                                        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                                            {countryCodes.map((country, index) => (
+                                                <button
+                                                    key={`${country.code}-${index}`}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, countryCode: country.code }))
+                                                        setShowCountryDropdown(false)
+                                                    }}
+                                                    className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm transition-colors ${
+                                                        formData.countryCode === country.code ? 'bg-[#FE9900]/10 text-[#FE9900]' : 'text-gray-700'
+                                                    }`}
+                                                >
+                                                    <span className="text-lg">{country.flag}</span>
+                                                    <span className="font-medium">{country.code}</span>
+                                                    <span className="text-gray-500 truncate">{country.country}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    placeholder="Enter phone number"
+                                    className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-500"
+                                    onChange={handleChange}
+                                    value={formData.phone}
+                                    required
+                                />
+                            </div>
                         </div>
-                         </div>
 
                         {/* Password Field */}
                         <div className="space-y-2">

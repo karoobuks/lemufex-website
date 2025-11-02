@@ -1,7 +1,7 @@
 // components/Hero.jsx
 import Image from "next/image";
 import Link from "next/link";
-import Crane from '@/assets/images/crane-construction-site.jpg'
+import automation from '@/assets/images/software-dev.jpg'
 
 const Hero = () => {
   return (
@@ -34,7 +34,7 @@ const Hero = () => {
         
         <div className="md:w-1/2">
           <Image
-            src={Crane} // Replace with your image path
+            src={automation} // Replace with your image path
             alt="Engineering illustration"
             width={600}
             height={400}

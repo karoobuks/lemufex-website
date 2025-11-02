@@ -54,14 +54,33 @@ export async function GET(req) {
   }
 
   if (isExport) {
-    const trainees = await Trainee.find(query)
+    const allTrainees = await Trainee.find(query)
       .sort({ createdAt: -1 })
       .lean();
+    
+    // Deduplicate by email for export, prioritizing proper fullNames
+    const traineeMap = new Map();
+    
+    allTrainees.forEach(trainee => {
+      const existing = traineeMap.get(trainee.email);
+      
+      if (!existing) {
+        traineeMap.set(trainee.email, trainee);
+      } else {
+        // Keep the one with a proper fullName (not "Trainee")
+        if (trainee.fullName && trainee.fullName.toLowerCase() !== 'trainee' && 
+            (!existing.fullName || existing.fullName.toLowerCase() === 'trainee')) {
+          traineeMap.set(trainee.email, trainee);
+        }
+      }
+    });
+    
+    const trainees = Array.from(traineeMap.values());
       
     return NextResponse.json({ trainees });
   }
 
-  const [trainees, total] = await Promise.all([
+  const [allTrainees, total] = await Promise.all([
     Trainee.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -70,12 +89,31 @@ export async function GET(req) {
     Trainee.countDocuments(query),
   ]);
 
+  // Deduplicate by email, prioritizing records with proper fullNames
+  const traineeMap = new Map();
+  
+  allTrainees.forEach(trainee => {
+    const existing = traineeMap.get(trainee.email);
+    
+    if (!existing) {
+      traineeMap.set(trainee.email, trainee);
+    } else {
+      // Keep the one with a proper fullName (not "Trainee")
+      if (trainee.fullName && trainee.fullName.toLowerCase() !== 'trainee' && 
+          (!existing.fullName || existing.fullName.toLowerCase() === 'trainee')) {
+        traineeMap.set(trainee.email, trainee);
+      }
+    }
+  });
+  
+  const trainees = Array.from(traineeMap.values());
+
   return NextResponse.json({
     trainees,
     pagination: {
-      total,
+      total: trainees.length,
       page,
-      pages: Math.ceil(total / limit),
+      pages: Math.ceil(trainees.length / limit),
     },
   });
 }

@@ -5,6 +5,14 @@ import Image from "next/image";
 
 
 const imageFiles = [
+  "auto-teamcolaboration.jpg",
+  "automation-ai-robot.jpg",
+  "web-dev.jpg",
+  "software-dev.jpg",
+  "electrical-box.jpg",
+  "electrical-con.jpg",
+  "elect-elect.jpg",
+  "coding.jpg",
   "building.jpg",
   "bulldozer.jpg",
   "crane-construction-site.jpg",

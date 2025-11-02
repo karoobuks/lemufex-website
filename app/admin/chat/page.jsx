@@ -658,99 +658,239 @@ export default function AdminChatPage() {
   if (!session) return (<div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="w-8 h-8 border-4 border-[#FE9900] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div><p className="text-gray-600">Loading...</p></div></div>);
   if (session.user?.role !== 'admin') return (<div className="flex items-center justify-center min-h-screen"><div className="text-center"><h1 className="text-2xl font-bold text-red-600">Access Denied</h1><p className="text-gray-600 mt-2">Admin access required</p></div></div>);
 
+  const [showChatList, setShowChatList] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setShowChatList(true);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleChatSelect = (chat) => {
+    selectChat(chat);
+    if (isMobile) setShowChatList(false);
+  };
+
+  const handleBackToList = () => {
+    setShowChatList(true);
+    setSelectedChat(null);
+  };
+
   return (
-    <div className="flex h-screen bg-[#F8F9FC]">
-      <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-[#081C3C] flex items-center gap-2"><FaComments className="text-[#FE9900]" /> Support Chats</h1>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {loading ? <div className="p-4 text-center text-gray-500">Loading chats...</div>
-            : chats.length === 0 ? <div className="p-4 text-center text-gray-500">No active chats</div>
-            : chats.map(chat => {
-              const user = chat.participants.find(p => p.role !== 'admin');
-              const unread = chatUnreadCounts[chat._id] || 0;
-              return (
-                <div key={chat._id} onClick={()=>selectChat(chat)} className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${selectedChat?._id===chat._id ? 'bg-[#FE9900]/10 border-l-4 border-l-[#FE9900]' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#081C3C] rounded-full flex items-center justify-center"><FaUser className="text-white text-sm" /></div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-[#081C3C]">{user?.name||'User'}</h3>
-                          <div className={`w-2 h-2 rounded-full ${userOnlineStatus[user?.userId] === 'online' ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-                        </div>
-                        <p className="text-sm text-gray-600">{(chat.messages && chat.messages.length) ? chat.messages[chat.messages.length-1].message : 'No messages yet'}</p>
-                      </div>
-                    </div>
-                    {unread>0 && <div className="bg-[#FE9900] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">{unread>9?'9+':unread}</div>}
-                  </div>
-                </div>
-              );
-            })
-          }
+    <div className="space-y-6 sm:space-y-0">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#FE9900] rounded-lg">
+            <FaComments className="text-white" size={20} />
+          </div>
+          <h1 className="text-xl font-bold text-[#081C3C]">Support Chat</h1>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        {selectedChat ? (
-          <>
-            <div className="bg-white p-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#081C3C] rounded-full flex items-center justify-center"><FaUser className="text-white text-sm" /></div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-semibold text-[#081C3C]">{selectedChat.participants.find(p=>p.role!=='admin')?.name || 'User'}</h2>
-                    <div className={`w-2 h-2 rounded-full ${userOnlineStatus[selectedChat.participants.find(p=>p.role!=='admin')?.userId] === 'online' ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-                  </div>
-                  <p className="text-sm text-gray-600">Support Chat</p>
-                </div>
-              </div>
+      {/* Chat Interface */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="flex h-[calc(100vh-200px)] md:h-[600px]">
+          {/* Chat List - Mobile: conditional, Desktop: always visible */}
+          <div className={`${
+            isMobile 
+              ? showChatList ? 'w-full' : 'hidden'
+              : 'w-1/3'
+          } bg-white border-r border-gray-200 flex flex-col`}>
+            <div className="p-3 sm:p-4 border-b border-gray-200">
+              <h2 className="text-lg sm:text-xl font-bold text-[#081C3C] flex items-center gap-2">
+                <FaComments className="text-[#FE9900]" size={18} /> 
+                <span className="hidden md:inline">Support Chats</span>
+                <span className="md:hidden">Chats</span>
+              </h2>
             </div>
-
-            <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto scroll-smooth">
-              {messages.length===0 ? <div className="text-center text-gray-500 mt-8"><p>No messages yet</p></div> :
-                <div className="space-y-4">
-                  {messages.map((msg, idx)=>(
-                    <div key={msg._id||idx} className={`flex ${msg.senderId===session.user.id ? 'justify-end':'justify-start'}`}>
-                      <div className={`max-w-xs px-4 py-2 rounded-lg ${msg.senderId===session.user.id ? 'bg-[#081C3C] text-white' : 'bg-white text-[#444] border border-gray-200'}`}>
-                        <p>{msg.message}</p>
-                        <div className={`flex items-center justify-between mt-1 ${msg.senderId===session.user.id ? 'text-gray-300' : 'text-gray-500'}`}>
-                          <p className="text-xs">{msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'Now'}</p>
-                          {msg.senderId===session.user.id && (<div className="ml-2">{msg.status==='sending'?<div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin opacity-50" />:<FaCheck className="text-xs" />}</div>)}
+            <div className="flex-1 overflow-y-auto">
+              {loading ? (
+                <div className="p-4 text-center text-gray-500 text-sm">Loading chats...</div>
+              ) : chats.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 text-sm">No active chats</div>
+              ) : (
+                chats.map(chat => {
+                  const user = chat.participants.find(p => p.role !== 'admin');
+                  const unread = chatUnreadCounts[chat._id] || 0;
+                  const lastMessage = (chat.messages && chat.messages.length) 
+                    ? chat.messages[chat.messages.length-1].message 
+                    : 'No messages yet';
+                  
+                  return (
+                    <div 
+                      key={chat._id} 
+                      onClick={() => handleChatSelect(chat)} 
+                      className={`p-3 sm:p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                        selectedChat?._id === chat._id ? 'bg-[#FE9900]/10 border-l-4 border-l-[#FE9900]' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#081C3C] rounded-full flex items-center justify-center flex-shrink-0">
+                            <FaUser className="text-white text-xs sm:text-sm" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-[#081C3C] text-sm sm:text-base truncate">
+                                {user?.name || 'User'}
+                              </h3>
+                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                userOnlineStatus[user?.userId] === 'online' ? 'bg-green-400' : 'bg-gray-400'
+                              }`}></div>
+                            </div>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">
+                              {lastMessage.length > 30 ? lastMessage.substring(0, 30) + '...' : lastMessage}
+                            </p>
+                          </div>
                         </div>
+                        {unread > 0 && (
+                          <div className="bg-[#FE9900] text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold flex-shrink-0">
+                            {unread > 9 ? '9+' : unread}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                  {otherUserTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-gradient-to-r from-green-50 to-green-100 text-[#444] border border-green-200 px-4 py-2 rounded-lg shadow-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}}></div>
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}}></div>
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}}></div>
-                          </div>
-                          <span className="text-xs text-green-600 font-medium">{otherUserTyping.userName} is typing...</span>
-                        </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Chat Messages - Mobile: conditional, Desktop: always visible */}
+          <div className={`${
+            isMobile 
+              ? !showChatList ? 'w-full' : 'hidden'
+              : 'flex-1'
+          } flex flex-col`}>
+            {selectedChat ? (
+              <>
+                {/* Chat Header */}
+                <div className="bg-white p-3 sm:p-4 border-b border-gray-200">
+                  <div className="flex items-center gap-3">
+                    {isMobile && (
+                      <button 
+                        onClick={handleBackToList}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        ←
+                      </button>
+                    )}
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#081C3C] rounded-full flex items-center justify-center">
+                      <FaUser className="text-white text-xs sm:text-sm" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="font-semibold text-[#081C3C] text-sm sm:text-base">
+                          {selectedChat.participants.find(p => p.role !== 'admin')?.name || 'User'}
+                        </h2>
+                        <div className={`w-2 h-2 rounded-full ${
+                          userOnlineStatus[selectedChat.participants.find(p => p.role !== 'admin')?.userId] === 'online' 
+                            ? 'bg-green-400' : 'bg-gray-400'
+                        }`}></div>
                       </div>
+                      <p className="text-xs sm:text-sm text-gray-600">Support Chat</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div ref={messagesContainerRef} className="flex-1 p-3 sm:p-4 overflow-y-auto scroll-smooth">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-gray-500 mt-8">
+                      <p className="text-sm sm:text-base">No messages yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 sm:space-y-4">
+                      {messages.map((msg, idx) => (
+                        <div key={msg._id || idx} className={`flex ${
+                          msg.senderId === session.user.id ? 'justify-end' : 'justify-start'
+                        }`}>
+                          <div className={`max-w-[85%] sm:max-w-xs px-3 sm:px-4 py-2 rounded-lg ${
+                            msg.senderId === session.user.id 
+                              ? 'bg-[#081C3C] text-white' 
+                              : 'bg-white text-[#444] border border-gray-200'
+                          }`}>
+                            <p className="text-sm sm:text-base break-words">{msg.message}</p>
+                            <div className={`flex items-center justify-between mt-1 ${
+                              msg.senderId === session.user.id ? 'text-gray-300' : 'text-gray-500'
+                            }`}>
+                              <p className="text-xs">
+                                {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {
+                                  hour: '2-digit', minute: '2-digit'
+                                }) : 'Now'}
+                              </p>
+                              {msg.senderId === session.user.id && (
+                                <div className="ml-2">
+                                  {msg.status === 'sending' ? (
+                                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin opacity-50" />
+                                  ) : (
+                                    <FaCheck className="text-xs" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {otherUserTyping && (
+                        <div className="flex justify-start">
+                          <div className="bg-gradient-to-r from-green-50 to-green-100 text-[#444] border border-green-200 px-3 sm:px-4 py-2 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="flex gap-1">
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}}></div>
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}}></div>
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}}></div>
+                              </div>
+                              <span className="text-xs text-green-600 font-medium">
+                                {otherUserTyping.userName} is typing...
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} className="h-1" />
                     </div>
                   )}
-                  <div ref={messagesEndRef} className="h-1" />
                 </div>
-              }
-            </div>
 
-            <form onSubmit={sendMessage} className="p-4 bg-white border-t border-gray-200">
-              <div className="flex gap-2">
-                <input type="text" value={newMessage} onChange={(e)=>handleTyping(e.target.value)} placeholder="Type your response..." className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-gray-900 placeholder:text-gray-700 placeholder:font-semibold" />
-                <button type="submit" disabled={!newMessage.trim()} className="bg-[#FE9900] hover:bg-[#F8C400] text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><FaPaperPlane/></button>
+                {/* Message Input */}
+                <form onSubmit={sendMessage} className="p-3 sm:p-4 bg-white border-t border-gray-200">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={newMessage} 
+                      onChange={(e) => handleTyping(e.target.value)} 
+                      placeholder="Type your response..." 
+                      className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-gray-900 placeholder:text-gray-700 placeholder:font-semibold" 
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={!newMessage.trim()} 
+                      className="bg-[#FE9900] hover:bg-[#F8C400] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <FaPaperPlane size={14} />
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-4">
+                <div className="text-center text-gray-500">
+                  <FaComments className="text-4xl sm:text-6xl text-gray-300 mx-auto mb-4" />
+                  <h2 className="text-lg sm:text-xl font-semibold mb-2">Select a chat to start</h2>
+                  <p className="text-sm sm:text-base">Choose a conversation from the left to view messages</p>
+                </div>
               </div>
-            </form>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center"><div className="text-center text-gray-500"><FaComments className="text-6xl text-gray-300 mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2">Select a chat to start</h2><p>Choose a conversation from the left to view messages</p></div></div>
-        )}
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
