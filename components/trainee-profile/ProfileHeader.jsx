@@ -60,11 +60,11 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 border border-gray-100">
-      <div className="flex flex-col md:flex-row items-center gap-6">
+    <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
+      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
         {/* Profile Image */}
-        <div className="relative">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#FE9900] shadow-lg">
+        <div className="relative flex-shrink-0">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#FE9900] shadow-lg">
             {currentImage ? (
               <Image
                 src={currentImage}
@@ -76,7 +76,7 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-[#FE9900] to-[#F8C400] flex items-center justify-center">
-                <FaUser className="text-white text-4xl" />
+                <FaUser className="text-white text-2xl sm:text-4xl" />
               </div>
             )}
           </div>
@@ -85,13 +85,13 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
           <button
             onClick={handleCameraClick}
             disabled={uploading}
-            className="absolute bottom-2 right-2 bg-[#FE9900] rounded-full p-2 shadow-lg hover:bg-[#F8C400] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-[#FE9900] rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-[#F8C400] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Change profile picture"
           >
             {uploading ? (
-              <FaSpinner className="text-white text-sm animate-spin" />
+              <FaSpinner className="text-white text-xs sm:text-sm animate-spin" />
             ) : (
-              <FaCamera className="text-white text-sm" />
+              <FaCamera className="text-white text-xs sm:text-sm" />
             )}
           </button>
 
@@ -106,16 +106,16 @@ export default function ProfileHeader({ name, imageUrl, onImageUpdate }) {
         </div>
 
         {/* Profile Info */}
-        <div className="text-center md:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#002B5B] mb-2">
+        <div className="text-center sm:text-left flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#002B5B] mb-2 truncate">
             {name || 'Welcome'}
           </h1>
-          <p className="text-[#555] text-base sm:text-lg mb-1">
+          <p className="text-[#555] text-sm sm:text-base lg:text-lg mb-3 sm:mb-1">
             Lemufex Engineering Trainee
           </p>
-          <div className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold border border-green-200">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            Active Member
+          <div className="inline-flex items-center px-2 sm:px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-bold border border-green-200">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
+            <span className="truncate">Active Member</span>
           </div>
         </div>
       </div>
