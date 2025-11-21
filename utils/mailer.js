@@ -262,7 +262,8 @@ export async function sendAcknowledgmentEmail(to, name) {
 export async function sendPasswordResetEmail(to, resetUrl) {
   try {
     const { error } = await resend.emails.send({
-      from: "Lemufex Group <support@lemufex.vercel.app>", // ✅ verified domain
+      //from: "Lemufex Group <support@lemufex.vercel.app>", // ✅ verified domain
+      from:  process.env.RESEND_FROM, // ✅ verified domain
       to,
       subject: "Password Reset Request",
       html: `
