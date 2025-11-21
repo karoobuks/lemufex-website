@@ -160,7 +160,7 @@
 // }
 
 
-// lib/mailer.js
+// utils/mailer.js
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import AcknowledgmentEmail from "@/components/email/AcknowledgementEmail";
@@ -227,15 +227,43 @@ export async function sendAcknowledgmentEmail(to, name) {
 }
 
 // --- New: Password reset email ---
+// export async function sendPasswordResetEmail(to, resetUrl) {
+//   try {
+//     const sender = process.env.RESEND_DOMAIN
+//       ? `support@${process.env.RESEND_DOMAIN}`
+//       : "onboarding@resend.dev";
+
+//     const { error } = await resend.emails.send({
+//       from: sender,
+//       to: process.env.RESEND_DOMAIN ? to : process.env.RESEND_TEST_EMAIL,
+//       subject: "Password Reset Request",
+//       html: `
+//         <p>Hello,</p>
+//         <p>You requested to reset your password. Click the link below:</p>
+//         <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+//         <p>This link expires in 15 minutes.</p>
+//       `,
+//     });
+
+//     if (error) {
+//       console.error("Resend error:", error);
+//       return false;
+//     }
+
+//     console.log(`Password reset email sent to: ${to}`);
+//     return true;
+//   } catch (err) {
+//     console.error("Send error:", err);
+//     return false;
+//   }
+// }
+
+
 export async function sendPasswordResetEmail(to, resetUrl) {
   try {
-    const sender = process.env.RESEND_DOMAIN
-      ? `support@${process.env.RESEND_DOMAIN}`
-      : "onboarding@resend.dev";
-
     const { error } = await resend.emails.send({
-      from: sender,
-      to: process.env.RESEND_DOMAIN ? to : process.env.RESEND_TEST_EMAIL,
+      from: "Lemufex Group <support@lemufex.vercel.app>", // ✅ verified domain
+      to,
       subject: "Password Reset Request",
       html: `
         <p>Hello,</p>
@@ -250,10 +278,10 @@ export async function sendPasswordResetEmail(to, resetUrl) {
       return false;
     }
 
-    console.log(`Password reset email sent to: ${to}`);
     return true;
   } catch (err) {
     console.error("Send error:", err);
     return false;
   }
 }
+

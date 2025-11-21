@@ -49,7 +49,7 @@
 
 
 
-// app/api/auth/forgot-password/route.js
+// app/api/account/forgot-password/route.js
 import crypto from "crypto";
 import connectedDB from "@/config/database";
 import User from "@/models/User";
