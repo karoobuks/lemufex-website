@@ -133,7 +133,7 @@ import connectedDB from "@/config/database";
 import User from "@/models/User";
 import Trainee from "@/models/Trainee";
 import Course from "@/models/Course";
-import getRedis from "@/lib/redis"; // ✅ must export Redis client
+import { redis } from '@/lib/redis';// ✅ must export Redis client
 import mongoose from "mongoose";
 
 // Config (tunable via env)
@@ -155,7 +155,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const redis = getRedis(); // ✅ correct usage
+  
   const ip = getClientIP(req);
   const userEmail = String(session.user.email).toLowerCase();
 

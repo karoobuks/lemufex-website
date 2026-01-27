@@ -160,9 +160,9 @@ import { auth } from "@/app/api/auth/[...nextauth]/route";
 import connectedDB from "@/config/database";
 import Payment from "@/models/Payment";
 import mongoose from "mongoose";
-import getRedis from "@/lib/redis";
+import { redis } from '@/lib/redis';
 
-const redis = getRedis();
+
 const CACHE_TTL_SECONDS = 10;
 
 export async function GET() {

@@ -750,11 +750,11 @@ import connectedDB from "@/config/database";
 import Payment from "@/models/Payment";
 import Trainee from "@/models/Trainee";
 import Course from "@/models/Course";
-import getRedis from "@/lib/redis";
+import { redis } from '@/lib/redis';
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
-const redis = getRedis();
+
 
 /** 🔒 Safe Fetch with Timeout + Retries */
 async function safeFetch(url, options = {}, retries = 2, timeoutMs = 10000) {

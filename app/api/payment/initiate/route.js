@@ -120,9 +120,9 @@ import { NextResponse } from "next/server";
 import connectedDB from "@/config/database";
 import Payment from "@/models/Payment";
 import Course from "@/models/Course";
-import getRedis from "@/lib/redis";
+import { redis } from '@/lib/redis';
 
-const redis = getRedis();
+// const redis = getRedis();
 
 /** --- Redis Rate Limiter (5 requests per minute per user) --- */
 async function rateLimit(userId) {

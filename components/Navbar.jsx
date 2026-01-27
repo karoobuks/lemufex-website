@@ -146,20 +146,20 @@ const Navbar = () => {
                      {isMobileMenuOpen  && (
         <div className="relative md:hidden">    
                     <ul className={`transition-all duration-300 bg-[#FE9900] w-full  left-0 z-50 ${isMobileMenuOpen ? 'opacity-100 max-h-screen py-6' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-                        <li><Link href="/" className={`block text-base font-medium py-4 px-2 ${pathname === '/' ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Home</Link></li>
+                        <li><Link href="/" onClick={() => setIsMobileMenuOpen(false)} className={`block text-base font-medium py-4 px-2 ${pathname === '/' ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Home</Link></li>
                         { (session?.user?.role === "admin" || session?.user?.isTrainee === true ) && (
-                        <li><Link href={`/dashboard`} className={`block text-base font-medium py-4 px-2 ${pathname === `/dashboard` ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Dashboard</Link></li>
+                        <li><Link href={`/dashboard`} onClick={() => setIsMobileMenuOpen(false)} className={`block text-base font-medium py-4 px-2 ${pathname === `/dashboard` ? 'text-gray-700' : 'text-[#E5E7EB]'}  block hover:text-gray-700 text-base font-medium py-4 px-2`}>Dashboard</Link></li>
                         )}
-                        <li> <Link href="/services" className={`${pathname === '/services'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Services</Link></li>
-                        <li> <Link href="/why-choose-us" className={`${pathname === '/why-choose-us'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Why Choose Us</Link></li>
-                        <li><Link href="/about" className={`${pathname === '/about'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>About</Link></li>
-                        <li><Link href="/faq" className={`${pathname === '/faq'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>FAQs</Link></li>
-                        <li> <Link href="/contact" className={`${pathname === '/contact'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Contact</Link></li>
+                        <li> <Link href="/services" onClick={() => setIsMobileMenuOpen(false)} className={`${pathname === '/services'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Services</Link></li>
+                        <li> <Link href="/why-choose-us" onClick={() => setIsMobileMenuOpen(false)} className={`${pathname === '/why-choose-us'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Why Choose Us</Link></li>
+                        <li><Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className={`${pathname === '/about'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>About</Link></li>
+                        <li><Link href="/faq" onClick={() => setIsMobileMenuOpen(false)} className={`${pathname === '/faq'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>FAQs</Link></li>
+                        <li> <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className={`${pathname === '/contact'? 'text-gray-700 hover:text-[#E5E7EB]' : 'text-[#E5E7EB]'} block hover:text-gray-700 text-base font-medium py-4 px-2`}>Contact</Link></li>
                         {  !session ? (
-                        <li> <button onClick={() => signIn()}   className=" text-[#E5E7EB] block hover:text-gray-700 text-base font-medium py-4 px-2">Login</button></li>
+                        <li> <button onClick={() => { signIn(); setIsMobileMenuOpen(false); }}   className=" text-[#E5E7EB] block hover:text-gray-700 text-base font-medium py-4 px-2">Login</button></li>
                         ) :
                           (
-                        <li> <button onClick={(handleLogOut)}  className=" text-[#E5E7EB] block hover:text-gray-700 text-base font-medium py-4 px-2">Sign Out</button></li>
+                        <li> <button onClick={() => { handleLogOut(); setIsMobileMenuOpen(false); }}  className=" text-[#E5E7EB] block hover:text-gray-700 text-base font-medium py-4 px-2">Sign Out</button></li>
                         )}
                     </ul> 
                     

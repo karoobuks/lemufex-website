@@ -217,10 +217,15 @@ export function LiveChatProvider({ children }) {
       return;
     }
 
-    const url = process.env.NEXT_PUBLIC_SOCKET_URL || undefined;
-    const socket = io(url, {
+    const socket = io({
+      path: '/api/socket',
       transports: ['websocket', 'polling'],
+      upgrade: true,
       rememberUpgrade: true,
+      timeout: 10000,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
       autoConnect: true
     });
 
@@ -262,12 +267,16 @@ export function LiveChatProvider({ children }) {
     socket.on('admin-notification', (data) => {
       setAdminUnreadCount(prev => prev + 1);
       try { new Audio('/notification.mp3').play().catch(()=>{}); } catch(e){}
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('🔔 Admin Alert', { 
-          body: `New message from ${data.userName}: ${data.message?.message || ''}`, 
-          icon: '/favicon.ico',
-          tag: 'admin-notification'
-        });
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('🔔 Admin Alert', { 
+            body: `New message from ${data.userName}`, 
+            icon: '/favicon-lemufex.ico',
+            tag: 'admin-notification'
+          });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission();
+        }
       }
       toast.success(`📨 New message from ${data.userName}`, {
         duration: 5000,
@@ -286,12 +295,16 @@ export function LiveChatProvider({ children }) {
         if (session.user.role !== 'admin' && !isVisible) {
           setUnreadCount(prev => prev + 1);
           try { new Audio('/notification.mp3').play().catch(()=>{}); } catch(e){}
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('📬 New Message', { 
-              body: `${message.senderName || 'Support'}: ${message.message}`, 
-              icon: '/favicon.ico',
-              tag: 'chat-message'
-            });
+          if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+              new Notification('📬 New Message', { 
+                body: `${message.senderName || 'Support'}: ${message.message}`, 
+                icon: '/favicon-lemufex.ico',
+                tag: 'chat-message'
+              });
+            } else if (Notification.permission !== 'denied') {
+              Notification.requestPermission();
+            }
           }
           toast.success(`📩 New message from ${message.senderName || 'Support'}`, {
             duration: 4000,

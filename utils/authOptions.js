@@ -736,17 +736,17 @@ export const authOptions = {
         const refreshToken = await createRefreshToken(user._id, REFRESH_TTL);
 
         // Set cookies if res is available
-        if (req?.res) {
-          const accessCookie = serialize("access_token", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: REFRESH_TTL,
-          });
-          req.res.setHeader("Set-Cookie", accessCookie);
-          req.res.setHeader("Set-Cookie", refreshToken); // append refresh token
-        }
+        // if (req?.res) {
+        //   const accessCookie = serialize("access_token", accessToken, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === "production",
+        //     sameSite: "lax",
+        //     path: "/",
+        //     maxAge: REFRESH_TTL,
+        //   });
+        //   req.res.setHeader("Set-Cookie", accessCookie);
+        //   req.res.setHeader("Set-Cookie", refreshToken); // append refresh token
+        // }
 
         return {
           id: user._id.toString(),

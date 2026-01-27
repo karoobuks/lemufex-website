@@ -59,6 +59,7 @@
 // }
 
 
+//app/api/login/route.js
 
 import { NextResponse } from "next/server";
 import { serialize } from "cookie";
@@ -145,23 +146,53 @@ import {
 
     //cookies
 
+    // const accessCookie = serialize('access_token', accessToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'lax',
+    //   path:'/',
+    //   maxAge: REFRESH_TTL
+    // });
+    // ACCESS TOKEN COOKIE
     const accessCookie = serialize('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // MUST be false on localhost
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 15, // 15 minutes
+    });
+
+    // REFRESH TOKEN COOKIE
+    const refreshCookie = serialize('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path:'/',
-      maxAge: REFRESH_TTL
+      path: '/',
+      maxAge: REFRESH_TTL, // 7 days
     });
+
 
     // Avoid logging sensitive info in production
     console.log('login success for', user.email);
 
-    const res = NextResponse.json({success: 'User successfully logged in'}, {status:200});
-    res.headers.set('set-cookie', accessCookie);
-    // To set multiple cookies, append header (Set-Cookie can appear multiple times)
-    // NextResponse allows only single header string; join with newline for multiple set-cookie headers
-    res.headers.append('set-cookie', refreshToken);
-    return res;
+    // const res = NextResponse.json({success: 'User successfully logged in'}, {status:200});
+    // res.headers.set('set-cookie', accessCookie);
+    // // To set multiple cookies, append header (Set-Cookie can appear multiple times)
+    // // NextResponse allows only single header string; join with newline for multiple set-cookie headers
+    // res.headers.append('set-cookie', refreshToken);
+    // return res;
+
+    const res = NextResponse.json(
+  { success: 'User successfully logged in' },
+  { status: 200 }
+);
+
+// Set multiple cookies correctly
+res.headers.append('Set-Cookie', accessCookie);
+res.headers.append('Set-Cookie', refreshCookie);
+
+return res;
+
   } catch (err) {
     console.error('Login error', err);
     return NextResponse.json({error: 'Server error'}, {status:500})

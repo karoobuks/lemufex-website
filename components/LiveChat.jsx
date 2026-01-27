@@ -547,27 +547,42 @@ export default function LiveChat() {
     if (loading) return;
     try {
       setLoading(true);
-      const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }});
+      const res = await fetch('/api/chat', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.chatId) {
         setChatId(data.chatId);
         await loadMessages(data.chatId);
+        toast.success('Chat started successfully!');
       } else {
         toast.error(data.error || 'Failed to start chat');
       }
-    } catch (err) { toast.error('Failed to start chat'); }
+    } catch (err) { 
+      console.error('Start chat error:', err);
+      toast.error('Unable to connect to chat service'); 
+    }
     finally { setLoading(false); }
   }, [loading]);
 
   const loadMessages = useCallback(async (id) => {
+    if (!id) return;
     try {
-      const res = await fetch(`/api/chat/messages?chatId=${id}`);
+      const res = await fetch(`/api/chat/messages?chatId=${id}`, {
+        credentials: 'include'
+      });
       const data = await res.json();
-      if (res.ok) {
-        setMessages(data.messages || []);
+      if (res.ok && data.messages) {
+        setMessages(data.messages);
         if (chatState !== 'collapsed') setTimeout(() => markAsRead(), 100);
+      } else {
+        console.warn('Failed to load messages:', data.error);
       }
-    } catch (err) { console.error('Failed to load messages', err); }
+    } catch (err) { 
+      console.error('Load messages error:', err);
+    }
   }, [chatState, markAsRead]);
 
   const sendMessage = useCallback(async (e) => {
@@ -593,18 +608,24 @@ export default function LiveChat() {
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ chatId, message: messageText })
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (res.ok) {
+      if (data.success && data.message) {
         setMessages(prev => prev.map(m => m._id === tempId ? { ...data.message, status: 'sent' } : m));
       } else {
-        setMessages(prev => prev.filter(m => m._id !== tempId));
-        toast.error(data.error || 'Failed to send message');
+        throw new Error(data.error || 'Invalid response');
       }
     } catch (err) {
+      console.error('Send message error:', err);
       setMessages(prev => prev.filter(m => m._id !== tempId));
-      toast.error('Failed to send message');
+      toast.error('Message failed to send. Please try again.');
     }
   }, [newMessage, chatId, session?.user]);
 
@@ -680,9 +701,22 @@ export default function LiveChat() {
             <>
               <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto bg-[#F8F9FC] scroll-smooth">
                 {loading ? (
-                  <div className="flex items-center justify-center h-full"><div className="text-[#002B5B]">Starting chat...</div></div>
+                  <div className="flex items-center justify-center h-full">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-4 border-[#FE9900] border-t-transparent rounded-full animate-spin"></div>
+                      <div className="text-[#002B5B] text-sm">Connecting to support...</div>
+                    </div>
+                  </div>
                 ) : messages.length === 0 ? (
-                  <div className="text-center text-[#555] text-sm"><p>Welcome to Lemufex Support!</p><p className="mt-2">How can we help you today?</p></div>
+                  <div className="text-center text-[#555] text-sm space-y-3">
+                    <div className="w-12 h-12 bg-[#FE9900] rounded-full flex items-center justify-center mx-auto">
+                      <FaComments className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#002B5B]">Welcome to Lemufex Support!</p>
+                      <p className="mt-1">We're here to help. How can we assist you today?</p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {messages.map((msg, index) => (
@@ -735,7 +769,14 @@ export default function LiveChat() {
 
               <form onSubmit={sendMessage} className="p-4 border-t border-gray-200">
                 <div className="flex gap-2">
-                  <input type="text" value={newMessage} onChange={(e)=>handleTyping(e.target.value)} placeholder="Type your message..." className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-sm text-gray-900 placeholder-gray-500" disabled={!chatId} />
+                  <input 
+                    type="text" 
+                    value={newMessage} 
+                    onChange={(e)=>handleTyping(e.target.value)} 
+                    placeholder={chatId ? "Type your message..." : "Starting chat..."} 
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-sm text-gray-900 placeholder-gray-500 disabled:bg-gray-100" 
+                    disabled={!chatId || loading} 
+                  />
                   <button type="submit" disabled={!newMessage.trim() || !chatId} className="bg-[#FE9900] hover:bg-[#F8C400] text-white p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><FaPaperPlane className="text-sm" /></button>
                 </div>
               </form>

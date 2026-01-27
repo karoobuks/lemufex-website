@@ -494,6 +494,8 @@ export default function AdminChatPage() {
   const [chatUnreadCounts, setChatUnreadCounts] = useState({});
   const [otherUserTyping, setOtherUserTyping] = useState(null);
   const [userOnlineStatus, setUserOnlineStatus] = useState({});
+  const [showChatList, setShowChatList] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const socketRef = useRef(null);
@@ -511,6 +513,17 @@ export default function AdminChatPage() {
   }, []);
 
   useEffect(() => { if (messages.length > 0) scrollToBottom(); }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setShowChatList(true);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (session?.user?.role === 'admin') {
@@ -657,20 +670,6 @@ export default function AdminChatPage() {
 
   if (!session) return (<div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="w-8 h-8 border-4 border-[#FE9900] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div><p className="text-gray-600">Loading...</p></div></div>);
   if (session.user?.role !== 'admin') return (<div className="flex items-center justify-center min-h-screen"><div className="text-center"><h1 className="text-2xl font-bold text-red-600">Access Denied</h1><p className="text-gray-600 mt-2">Admin access required</p></div></div>);
-
-  const [showChatList, setShowChatList] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) setShowChatList(true);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const handleChatSelect = (chat) => {
     selectChat(chat);

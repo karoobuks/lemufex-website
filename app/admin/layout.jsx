@@ -34,6 +34,11 @@ export default function AdminLayout({ children }){
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
 
+    // Close mobile menu when route changes
+    useEffect(() => {
+        setIsMobileMenuOpen(false)
+    }, [pathname])
+
     const menuItems = [
         { href: "/admin/users", icon: FiUsers, label: "Users" },
         { href: "/admin/trainees", icon: FaGraduationCap, label: "Trainees" },
@@ -63,18 +68,12 @@ export default function AdminLayout({ children }){
                 {isMobileMenuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
 
-            {/* Mobile Overlay */}
-            {isMobileMenuOpen && (
-                <div 
-                    className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
-            )}
+
 
             {/* Sidebar */}
             <aside className={`
                 ${isMobile 
-                    ? `fixed top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-50 ${
+                    ? `fixed top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-30 ${
                         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                     }`
                     : `${isCollapsed ? 'w-16' : 'w-64'} fixed top-[64px] left-0 h-[calc(100vh-64px)]`
@@ -87,7 +86,15 @@ export default function AdminLayout({ children }){
                             Lemufex Admin
                         </div>
                     )}
-                    {!isMobile && (
+                    {isMobile ? (
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                            aria-label="Close mobile menu"
+                        >
+                            <FiX size={20} />
+                        </button>
+                    ) : (
                         <button 
                             onClick={() => setIsCollapsed(!isCollapsed)}
                             className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
@@ -108,7 +115,12 @@ export default function AdminLayout({ children }){
                                 <Link 
                                     key={item.href}
                                     href={item.href}
-                                    onClick={handleMenuItemClick}
+                                    onClick={() => {
+                                        handleMenuItemClick()
+                                        if (isMobile) {
+                                            setTimeout(() => setIsMobileMenuOpen(false), 100)
+                                        }
+                                    }}
                                     className={`
                                         flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200
                                         ${isActive 

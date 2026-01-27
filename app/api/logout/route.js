@@ -45,32 +45,75 @@
 //   }
 // }
 
+// //app/api/logout/route.js
+
+// import { NextResponse } from "next/server";
+// import { serialize } from "cookie";
+// import getRedis from "@/lib/redis";
+
+// export async function POST(req) {
+//   try {
+//     const cookieHeader = req.headers.get('cookie') || '';
+//     const match = cookieHeader.match(/(?:^|;)\s*refresh_token=([^;]+)/);
+//     const refreshToken = match ? decodeURIComponent(match[1]) : null;
+
+//     const redis = getRedis()
+//     if(refreshToken) {
+//       await redis.del(`refresh:${refreshToken}`);
+//     }
+
+//     //clear cookies
+//     const expiredAccess = serialize('access_token', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 0 })
+//     const expiredRefresh = serialize('refresh_token', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 0 })
+
+//     const res = NextResponse.json({ success: 'Logged out'}, { status:200});
+//     res.headers.set('set-cookie', expiredAccess);
+//     res.headers.append('set-cookie', expiredRefresh);
+//     return res;
+//   } catch (err) {
+//     console.error(err);
+//     return NextResponse.json({ error: 'Server error' }, { status: 500 });
+//   }
+// }
+
+
 
 import { NextResponse } from "next/server";
 import { serialize } from "cookie";
-import getRedis from "@/lib/redis";
+import { redis } from "@/lib/redis";
 
 export async function POST(req) {
   try {
-    const cookieHeader = req.headers.get('cookie') || '';
+    const cookieHeader = req.headers.get("cookie") || "";
     const match = cookieHeader.match(/(?:^|;)\s*refresh_token=([^;]+)/);
     const refreshToken = match ? decodeURIComponent(match[1]) : null;
 
-    const redis = getRedis()
-    if(refreshToken) {
+    if (refreshToken) {
       await redis.del(`refresh:${refreshToken}`);
     }
 
-    //clear cookies
-    const expiredAccess = serialize('access_token', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 0 })
-    const expiredRefresh = serialize('refresh_token', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 0 })
+    const expiredAccess = serialize("access_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
 
-    const res = NextResponse.json({ success: 'Logged out'}, { status:200});
-    res.headers.set('set-cookie', expiredAccess);
-    res.headers.append('set-cookie', expiredRefresh);
+    const expiredRefresh = serialize("refresh_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    const res = NextResponse.json({ success: "Logged out" }, { status: 200 });
+    res.headers.set("set-cookie", expiredAccess);
+    res.headers.append("set-cookie", expiredRefresh);
     return res;
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error("Logout error", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

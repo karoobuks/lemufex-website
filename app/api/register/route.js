@@ -62,7 +62,7 @@ import bcrypt from 'bcryptjs';
 import { serialize } from 'cookie';
 import { checkRateLimitIp } from '@/lib/authHelpers'; // from earlier helper file
 import { validateRegistration } from '@/middleware/validation';
-import getRedis from '@/lib/redis';
+import { redis } from '@/lib/redis';
 import validator from 'validator';
 
 const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
@@ -103,7 +103,7 @@ export async function POST(req) {
     const signupIpKey = `signup:ip:${ip}`;
     const { count: signupCount } = await (async () => {
       // use Redis directly for this small check (incr with expiry)
-      const redis = getRedis();
+      
       const res = await redis.incr(signupIpKey);
       if (res === 1) await redis.pexpire(signupIpKey, WINDOW_MS);
       const ttl = await redis.pttl(signupIpKey);
