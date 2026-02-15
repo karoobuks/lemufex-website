@@ -58,7 +58,6 @@
 
 
 
-// models/Payment.js
 import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
@@ -78,25 +77,26 @@ const paymentSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     email: { type: String, required: true, trim: true, lowercase: true },
     paymentType: { type: String, enum: ["full", "installment", "completion"], required: true },
+    paymentMethod: { type: String, enum: ["paystack", "bank_transfer"], default: "bank_transfer" },
+    paymentProof: { type: String },
     currentInstallment: { type: Number, default: 0 },
     amountDue: { type: Number, default: 0 },
-    // reference: { type: String, unique: true, sparse: true, index: true },
+    reference: { type: String, index: true },
     status: {
       type: String,
-      enum: ["pending", "success", "completed", "failed"],
+      enum: ["pending", "success", "completed", "failed", "verified"],
       default: "pending",
       index: true,
     },
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    verifiedAt: { type: Date },
     paidAt: { type: Date, default: null },
     gateway_response: String,
   },
   { timestamps: true }
 );
 
-// Useful compound / partial indexes
 paymentSchema.index({ userId: 1, status: 1 });
-// paymentSchema.index({ reference: 1 }, { unique: true, sparse: true });
-// Partial index to find pending payments quickly (small index footprint)
 paymentSchema.index({ userId: 1, course: 1 }, { partialFilterExpression: { status: "pending" } });
 
 const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
