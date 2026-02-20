@@ -126,6 +126,19 @@ export async function POST(req) {
     // use sanitized fields (from your validation)
     let { firstName, lastName, email, password, phone } = validation.sanitized;
 
+    const strongPasswordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+
+      if (!strongPasswordRegex.test(password)) {
+        return NextResponse.json(
+          {
+            error:
+              "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+          },
+          { status: 400 }
+        );
+      }
+
     // normalize email to lower-case and trimmed
     email = String(email).trim().toLowerCase();
 
@@ -137,7 +150,7 @@ export async function POST(req) {
 
 
        // additional checks: rate-limit per-email (to prevent enumeration / floods)
-    const redis = getRedis();
+    // const redis = getRedis();
     const emailKey = `signup:email:${email}`;
     const emailAttempts = await redis.incr(emailKey);
     if (emailAttempts === 1) {

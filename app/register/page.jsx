@@ -127,9 +127,27 @@ const RegisterPage = () => {
         if (error) setError('')
     }
 
+    const isStrongPassword = (password) => {
+    const strongPasswordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+    return strongPasswordRegex.test(password);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault()
+        // setError('')
+        // setLoading(true)
         setError('')
+
+       // Strong password check
+        if (!isStrongPassword(formData.password)) {
+        const message =
+            "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+        setError(message)
+        toast.error(message)
+        return
+        }
+
         setLoading(true)
 
         try {
@@ -361,6 +379,8 @@ const RegisterPage = () => {
                                     onChange={handleChange}
                                     value={formData.password}
                                     required
+                                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=]).{8,}$"
+                                    title="Must be at least 8 characters, include uppercase, lowercase, number and special character"
                                 />
                                 <button
                                     type="button"
