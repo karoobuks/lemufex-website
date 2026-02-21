@@ -22,8 +22,18 @@ const validateField = (name, value) => {
   switch (name) {
     case 'fullName': return value.length < 2 ? 'Name must be at least 2 characters' : '';
     case 'email': return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? 'Invalid email format' : '';
-    case 'phone': return !/^[\+]?[1-9][\d]{1,14}$/.test(value.replace(/\s/g, '')) ? 'Invalid phone number' : '';
-    case 'emergencycontact': return !/^[\+]?[1-9][\d]{1,14}$/.test(value.replace(/\s/g, '')) ? 'Invalid emergency contact' : '';
+    case 'phone': {
+      const cleaned = value.replace(/\s/g, '');
+      if (!cleaned) return 'Phone number is required';
+      if (!/^\+\d{7,15}$/.test(cleaned)) return 'Phone number must include country code (e.g., +2348012345678)';
+      return '';
+    }
+    case 'emergencycontact': {
+      const cleaned = value.replace(/\s/g, '');
+      if (!cleaned) return 'Emergency contact is required';
+      if (!/^\+\d{7,15}$/.test(cleaned)) return 'Emergency contact must include country code (e.g., +2348012345678)';
+      return '';
+    }
     case 'address': return value.length < 10 ? 'Address must be at least 10 characters' : '';
     case 'dob': {
       const age = new Date().getFullYear() - new Date(value).getFullYear();
@@ -220,7 +230,7 @@ const RegisterTrainingForm = () => {
               name="phone"
               type="tel"
               required
-              placeholder="+1234567890"
+              placeholder="+2348056789097"
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition text-gray-900 ${
                 fieldErrors.phone ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-[#FE9900]'
               }`}
@@ -238,7 +248,7 @@ const RegisterTrainingForm = () => {
               name="emergencycontact"
               type="tel"
               required
-              placeholder="+1234567890"
+              placeholder="+234805678907"
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition text-gray-900 ${
                 fieldErrors.emergencycontact ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-[#FE9900]'
               }`}

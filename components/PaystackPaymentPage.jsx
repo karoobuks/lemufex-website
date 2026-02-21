@@ -6,7 +6,7 @@ import { FaArrowLeft, FaUniversity, FaShieldAlt, FaCheckCircle } from "react-ico
 import toast from "react-hot-toast";
 import toSlug from "@/utils/toSlug";
 import LemLoader from "@/components/loaders/LemLoader";
-import BankTransferPayment from "@/components/BankTransferPayment";
+import PaymentFlow from "@/components/PaymentFlow";
 
 export default function PaymentConfirmPage() {
   const searchParams = useSearchParams();
@@ -51,17 +51,19 @@ export default function PaymentConfirmPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#F4F4F4] to-gray-200 py-8 px-4">
         <div className="max-w-2xl mx-auto mb-6">
-          <button 
+          <button
             onClick={() => setShowPayment(false)}
             className="inline-flex items-center gap-2 text-[#081C3C] hover:text-[#FE9900] transition-colors"
           >
             <FaArrowLeft /> Back to Options
           </button>
         </div>
-        <BankTransferPayment
+        <PaymentFlow
+          course={{ title: rawSlug, slug: slug }}
+          session={{ user: { id: userId, email: email } }}
+          paymentType={paymentType}
           amount={paymentType === "full" ? prices.full : prices.installment}
           courseId={courseId}
-          userId={userId}
           onSuccess={handlePaymentSuccess}
         />
       </div>
@@ -72,7 +74,7 @@ export default function PaymentConfirmPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#F4F4F4] to-gray-200 py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <button 
+          <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-2 text-[#081C3C] hover:text-[#FE9900] mb-4 transition-colors"
           >
@@ -156,7 +158,7 @@ export default function PaymentConfirmPage() {
             <div>
               <h3 className="font-semibold text-[#081C3C]">Secure Payment</h3>
               <p className="text-sm text-gray-600">
-                Transfer to our UBA account. Your payment will be verified within 24 hours.
+               Pay securely with Paystack or transfer to our UBA account. Bank transfers are verified within 24 hours.
               </p>
             </div>
           </div>
@@ -166,8 +168,8 @@ export default function PaymentConfirmPage() {
           onClick={() => setShowPayment(true)}
           className="w-full bg-[#FE9900] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-[#F8C400] transition-colors flex items-center justify-center gap-3 shadow-lg"
         >
-          <FaUniversity />
-          Proceed to Bank Transfer - ₦{(paymentType === "full" ? prices.full : prices.installment)?.toLocaleString() || "0"}
+          <FaCheckCircle />
+          Proceed to Payment - ₦{(paymentType === "full" ? prices.full : prices.installment)?.toLocaleString() || "0"}
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">

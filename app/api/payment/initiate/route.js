@@ -19,7 +19,7 @@
 //       );
 //     }
 
-    
+
 //     // 1. Fetch course
 //     const course = await Course.findOne({ slug: new RegExp(`^${slug}$`, "i") });
 //     if (!course) {
@@ -158,7 +158,7 @@ export async function POST(req) {
   try {
     await connectedDB();
 
-    const { userId, email, slug, paymentType } = await req.json();
+    const { userId, email, slug, paymentType, paymentMethod } = await req.json();
     if (!userId || !email || !slug || !paymentType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
@@ -180,17 +180,20 @@ export async function POST(req) {
       if (!course) {
         return NextResponse.json({ error: "Course not found" }, { status: 404 });
       }
-      await redis.set(cacheKey, JSON.stringify(course), "EX", 300); // cache for 5 min
+      await redis.set(cacheKey, JSON.stringify(course), { ex: 300 }); // cache for 5 min
     }
 
     // --- 3️⃣ Prevent duplicate pending payments ---
     const existingPending = await Payment.findOne({ userId, course: course._id, status: "pending" });
-    if (existingPending) {
-      return NextResponse.json({
-        error: "You already have a pending payment for this course.",
-        reference: existingPending.reference,
-      }, { status: 409 });
-    }
+ if (existingPending && existingPending.reference) {
+  // redirect user to Paystack with existing reference
+  return NextResponse.json({
+    authorizationUrl: `https://checkout.paystack.com/${existingPending.reference}`,
+    reference: existingPending.reference,
+    course,
+    amountDue: existingPending.amountDue || existingPending.amount
+  }, { status: 200 });
+}
 
     // --- 4️⃣ Determine payment amount ---
     let amount = 0, installment = 0, amountDue = 0;
@@ -216,47 +219,71 @@ export async function POST(req) {
       status: "pending",
     });
 
-    // --- 6️⃣ Initialize Paystack securely ---
-    const paystackPayload = {
-      email,
-      amount: amount * 100, // convert to kobo
-      callback_url: `${process.env.NEXTAUTH_URL}/api/payment/verify`,
-      metadata: { userId, slug, paymentId: payment._id, paymentType },
-      subaccount: process.env.PAYSTACK_SUBACCOUNT,
-    };
+    // --- 6️⃣ Handle Payment Method (Paystack or Bank Transfer) ---
+    if (paymentMethod === "bank_transfer") {
+      // Generate a unique reference for bank transfer
+      const reference = `BT-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
-    const paystackHeaders = {
-      Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-      "Content-Type": "application/json",
-    };
+      // Update payment record with reference
+      await Payment.findByIdAndUpdate(payment._id, {
+        reference,
+      });
 
-    const data = await safeFetch("https://api.paystack.co/transaction/initialize", {
-      method: "POST",
-      headers: paystackHeaders,
-      body: JSON.stringify(paystackPayload),
-    });
+      // Respond to client for Bank Transfer
+      return NextResponse.json(
+        {
+          paymentId: payment._id,
+          reference,
+          course,
+          amountDue,
+          paymentMethod: "bank_transfer",
+          message: "Please proceed with the bank transfer.",
+        },
+        { status: 200 }
+      );
+    } else {
+      // --- Initialize Paystack securely ---
+      const paystackPayload = {
+        email,
+        amount: amount * 100, // convert to kobo
+        callback_url: `${process.env.NEXTAUTH_URL}/api/payment/verify`,
+        metadata: { userId, slug, paymentId: payment._id, paymentType },
+        
+      };
 
-    if (!data?.status) {
-      await Payment.findByIdAndUpdate(payment._id, { status: "failed" });
-      return NextResponse.json({ error: "Failed to initialize payment", details: data }, { status: 400 });
-    }
+      const paystackHeaders = {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      };
 
-    // --- 7️⃣ Update payment record ---
-    await Payment.findByIdAndUpdate(payment._id, {
-      reference: data.data.reference,
-    });
+      const data = await safeFetch("https://api.paystack.co/transaction/initialize", {
+        method: "POST",
+        headers: paystackHeaders,
+        body: JSON.stringify(paystackPayload),
+      });
 
-    // --- 8️⃣ Respond to client ---
-    return NextResponse.json(
-      {
-        authorizationUrl: data.data.authorization_url,
-        paymentId: payment._id,
+      if (!data?.status) {
+        await Payment.findByIdAndUpdate(payment._id, { status: "failed" });
+        return NextResponse.json({ error: "Failed to initialize payment", details: data }, { status: 400 });
+      }
+
+      // --- Update payment record ---
+      await Payment.findByIdAndUpdate(payment._id, {
         reference: data.data.reference,
-        course,
-        amountDue,
-      },
-      { status: 200 }
-    );
+      });
+
+      // --- Respond to client ---
+      return NextResponse.json(
+        {
+          authorizationUrl: data.data.authorization_url,
+          paymentId: payment._id,
+          reference: data.data.reference,
+          course,
+          amountDue,
+        },
+        { status: 200 }
+      );
+    }
 
   } catch (error) {
     console.error("❌ Payment initiation error:", error);

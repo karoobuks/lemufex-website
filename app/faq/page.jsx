@@ -184,7 +184,7 @@ export default function FAQ() {
     {
       question: "How can I make payments for services or training?",
       answer:
-        "Currently, payments can be made via direct bank transfer or invoice. We are integrating secure online payments (cards, Paystack, Flutterwave, and Crypto) so you can pay directly on our website soon.",
+        "We accept payments via Paystack (for card, USSD, and other digital payments) and direct Bank Transfer. You can choose your preferred method during the checkout process on our website.",
     },
     {
       question: "Can I request a custom project?",
