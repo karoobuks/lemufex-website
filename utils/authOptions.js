@@ -100,7 +100,7 @@
 // //         token.isTrainee = !!user.isTrainee;
 // //         token.firstName = user.firstName;
 // //         token.lastName = user.lastName;
-        
+
 // //         if(user.isTrainee){
 // //           const trainee = await Trainee.findOne({ user: user.id || user._id});
 // //           token.traineeId = trainee?._id?.toString() || null;
@@ -636,8 +636,6 @@ import connectedDB from "@/config/database";
 import User from "@/models/User";
 import Trainee from "@/models/Trainee";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { serialize } from "cookie";
 import {
   checkRateLimitIp,
   incrFailedLogin,
@@ -656,6 +654,7 @@ const REFRESH_TTL = parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || 7 * 24 * 3
 
 // Utility to get client IP
 function getClientIP(req) {
+  if (!req || !req.headers) return "unknown";
   const xff = req.headers["x-forwarded-for"];
   if (xff) return xff.split(",")[0].trim();
   const forwarded = req.headers["forwarded"];
@@ -717,36 +716,15 @@ export const authOptions = {
 
         await resetFailedLogin(email);
 
-        // Optional: create JWT access token
-        const accessToken = jwt.sign(
-          { _id: user._id, email: user.email, role: user.role },
-          process.env.JWT_SECRET,
-          { expiresIn: process.env.JWT_EXPIRES_IN || "15m" }
-        );
+        const remember = credentials.rememberMe === true || credentials.rememberMe === "true";
 
-
-          const remember = credentials.rememberMe === true || credentials.rememberMe === "true";
-
-      // Longer refresh TTL if "remember me" checked
-      const refreshTTL = remember
-      ? parseInt(process.env.REFRESH_TOKEN_TTL_REMEMBER || 30 * 24 * 3600) // 30 days
-      : parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || 7 * 24 * 3600);   // 7 days
+        // Longer refresh TTL if "remember me" checked
+        const refreshTTL = remember
+          ? parseInt(process.env.REFRESH_TOKEN_TTL_REMEMBER || 30 * 24 * 3600) // 30 days
+          : parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || 7 * 24 * 3600);   // 7 days
 
         // Optional: create refresh token
-        const refreshToken = await createRefreshToken(user._id, REFRESH_TTL);
-
-        // Set cookies if res is available
-        // if (req?.res) {
-        //   const accessCookie = serialize("access_token", accessToken, {
-        //     httpOnly: true,
-        //     secure: process.env.NODE_ENV === "production",
-        //     sameSite: "lax",
-        //     path: "/",
-        //     maxAge: REFRESH_TTL,
-        //   });
-        //   req.res.setHeader("Set-Cookie", accessCookie);
-        //   req.res.setHeader("Set-Cookie", refreshToken); // append refresh token
-        // }
+        await createRefreshToken(user._id, refreshTTL);
 
         return {
           id: user._id.toString(),
@@ -820,10 +798,10 @@ export const authOptions = {
           token.traineeId = trainee?._id?.toString() || null;
           token.trainings = Array.isArray(trainee?.trainings)
             ? trainee.trainings.map(t => ({
-                track: t.track,
-                status: t.status,
-                progress: t.progress,
-              }))
+              track: t.track,
+              status: t.status,
+              progress: t.progress,
+            }))
             : [];
         } else {
           token.traineeId = null;

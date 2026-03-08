@@ -12,16 +12,16 @@
 //         // Rate limiting
 //         const ip = getClientIP(req);
 //         await limiter.check(5, ip); // 5 requests per minute per IP
-        
+
 //         await connectedDB()
 
 //         const body = await req.json();
 //         const validation = validateRegistration(body);
-        
+
 //         if (!validation.isValid) {
 //             return NextResponse.json({error: validation.errors.join(', ')}, {status:400});
 //         }
-        
+
 //         const {firstName, lastName, email, password, phone} = validation.sanitized;
 
 //         const existingUser = await User.findOne({email}).select('_id').lean()
@@ -38,7 +38,7 @@
 //            email,
 //            password:hashedPassword,
 //            phone,
-            
+
 //         })
 
 //         await newUser.save()
@@ -59,7 +59,6 @@ import { NextResponse } from 'next/server';
 import connectedDB from '@/config/database';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
-import { serialize } from 'cookie';
 import { checkRateLimitIp } from '@/lib/authHelpers'; // from earlier helper file
 import { validateRegistration } from '@/middleware/validation';
 import { redis } from '@/lib/redis';
@@ -80,7 +79,7 @@ function getClientIP(req) {
 // helper: lightweight disposable-email check (example)
 function isDisposableEmail(email) {
   // Very small quick check. For production use a reliable list or service.
-  const disposableDomains = ['mailinator.com','10minutemail.com','tempmail.io'];
+  const disposableDomains = ['mailinator.com', '10minutemail.com', 'tempmail.io'];
   try {
     const domain = email.split('@')[1].toLowerCase();
     return disposableDomains.includes(domain);
@@ -99,11 +98,11 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Too many requests from this IP. Try later.' }, { status: 429 });
     }
 
-        // Additional stricter rate-limit only for signup requests
+    // Additional stricter rate-limit only for signup requests
     const signupIpKey = `signup:ip:${ip}`;
     const { count: signupCount } = await (async () => {
       // use Redis directly for this small check (incr with expiry)
-      
+
       const res = await redis.incr(signupIpKey);
       if (res === 1) await redis.pexpire(signupIpKey, WINDOW_MS);
       const ttl = await redis.pttl(signupIpKey);
@@ -114,7 +113,7 @@ export async function POST(req) {
     }
 
 
-      await connectedDB();
+    await connectedDB();
 
     // 2) validate & sanitize input
     const body = await req.json();
@@ -127,17 +126,17 @@ export async function POST(req) {
     let { firstName, lastName, email, password, phone } = validation.sanitized;
 
     const strongPasswordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
 
-      if (!strongPasswordRegex.test(password)) {
-        return NextResponse.json(
-          {
-            error:
-              "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
-          },
-          { status: 400 }
-        );
-      }
+    if (!strongPasswordRegex.test(password)) {
+      return NextResponse.json(
+        {
+          error:
+            "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+        },
+        { status: 400 }
+      );
+    }
 
     if (phone) {
       const phoneDigits = String(phone).replace(/\D/g, "");
@@ -156,7 +155,7 @@ export async function POST(req) {
 
 
 
-       // additional checks: rate-limit per-email (to prevent enumeration / floods)
+    // additional checks: rate-limit per-email (to prevent enumeration / floods)
     // const redis = getRedis();
     const emailKey = `signup:email:${email}`;
     const emailAttempts = await redis.incr(emailKey);
