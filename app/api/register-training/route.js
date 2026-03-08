@@ -128,7 +128,7 @@
 
 // app/api/trainee/register/route.js
 import { NextResponse } from "next/server";
-import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
 import connectedDB from "@/config/database";
 import User from "@/models/User";
 import Trainee from "@/models/Trainee";
@@ -193,6 +193,11 @@ export async function POST(req) {
 
     if (!fullName || !trainings  || !dob || !phone) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const phoneDigits = String(phone).replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      return NextResponse.json({ error: "Invalid phone number. Please enter a valid phone number." }, { status: 400 });
     }
 
     // MongoDB transaction

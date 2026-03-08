@@ -4,7 +4,7 @@ import connectedDB from "@/config/database";
 import Resource from "@/models/Resource";
 import User from "@/models/User";
 import Trainee from "@/models/Trainee";
-import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
 import cloudinary from "@/config/cloudinary";
 
 

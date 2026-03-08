@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/config/database';
 import Review from '@/models/Review';
-import { auth } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from "@/auth";
 
 export async function POST(req) {
   try {

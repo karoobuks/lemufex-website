@@ -9,7 +9,7 @@ import LemLoader from "@/components/loaders/LemLoader";
 const EnrollMore = () => {
     const { data: session, status } = useSession();
     const userId = session?.user?.id;
-    const enrolledTracks = session?.user?.trainings.map((t) => t.track.toLowerCase()) || [];
+    const enrolledTracks = session?.user?.trainings?.map((t) => t.track.toLowerCase()) || [];
     const [loadingCourseId, setLoadingCourseId] = useState(null);
     const [courses, setCourses] = useState([]);
     const [fetchingCourses, setFetchingCourses] = useState(true);
@@ -39,7 +39,7 @@ const EnrollMore = () => {
         router.push(`/payment/confirm?slug=${encodeURIComponent(course.name)}&email=${encodeURIComponent(session.user.email)}&userId=${userId}`);
     };
 
-    const availableCourses = courses.filter(course => 
+    const availableCourses = courses.filter(course =>
         !enrolledTracks.includes(course.name.toLowerCase())
     );
 
@@ -48,7 +48,7 @@ const EnrollMore = () => {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <button 
+                    <button
                         onClick={() => router.back()}
                         className="inline-flex items-center gap-2 text-[#002B5B] hover:text-[#FE9900] mb-4 transition-colors"
                     >
@@ -86,7 +86,7 @@ const EnrollMore = () => {
                         <FaGraduationCap className="text-[#FE9900]" />
                         Available Programs
                     </h2>
-                    
+
                     {availableCourses.length === 0 ? (
                         <div className="text-center py-12">
                             <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-4" />

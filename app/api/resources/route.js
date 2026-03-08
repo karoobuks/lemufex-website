@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import cloudinary from "@/config/cloudinary";
 import { Readable } from "stream";
 import Trainee from "@/models/Trainee";
-import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
 import Course from "@/models/Course";
 import { v2 } from "cloudinary";
 import path from "path";

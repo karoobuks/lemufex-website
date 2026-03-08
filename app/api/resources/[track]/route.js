@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import connectedDB from "@/config/database";
 import Resource from "@/models/Resource";
 import { reverseSlugify } from "@/utils/slugify";
-import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
 import User from "@/models/User";
 import Trainee from "@/models/Trainee";
 

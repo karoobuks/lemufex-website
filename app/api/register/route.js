@@ -139,6 +139,13 @@ export async function POST(req) {
         );
       }
 
+    if (phone) {
+      const phoneDigits = String(phone).replace(/\D/g, "");
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        return NextResponse.json({ error: "Invalid phone number. Please enter a valid phone number." }, { status: 400 });
+      }
+    }
+
     // normalize email to lower-case and trimmed
     email = String(email).trim().toLowerCase();
 

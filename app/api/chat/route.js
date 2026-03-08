@@ -2,7 +2,7 @@
 
 // /app/api/chat/route.js
 import { NextResponse } from 'next/server';
-import { auth } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from "@/auth";
 import connectedDB from '@/config/database';
 import Chat from '@/models/Chat';
 import User from '@/models/User';

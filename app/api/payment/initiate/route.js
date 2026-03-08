@@ -185,15 +185,15 @@ export async function POST(req) {
 
     // --- 3️⃣ Prevent duplicate pending payments ---
     const existingPending = await Payment.findOne({ userId, course: course._id, status: "pending" });
- if (existingPending && existingPending.reference) {
-  // redirect user to Paystack with existing reference
-  return NextResponse.json({
-    authorizationUrl: `https://checkout.paystack.com/${existingPending.reference}`,
-    reference: existingPending.reference,
-    course,
-    amountDue: existingPending.amountDue || existingPending.amount
-  }, { status: 200 });
-}
+    if (existingPending && existingPending.reference) {
+      // redirect user to Paystack with existing reference
+      return NextResponse.json({
+        authorizationUrl: `https://checkout.paystack.com/${existingPending.reference}`,
+        reference: existingPending.reference,
+        course,
+        amountDue: existingPending.amountDue || existingPending.amount
+      }, { status: 200 });
+    }
 
     // --- 4️⃣ Determine payment amount ---
     let amount = 0, installment = 0, amountDue = 0;
@@ -248,7 +248,7 @@ export async function POST(req) {
         amount: amount * 100, // convert to kobo
         callback_url: `${process.env.NEXTAUTH_URL}/api/payment/verify`,
         metadata: { userId, slug, paymentId: payment._id, paymentType },
-        
+
       };
 
       const paystackHeaders = {

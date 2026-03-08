@@ -168,9 +168,7 @@
 // }
 
 
-// /api/me/route.js
-// /app/api/me/route.js
-import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import connectedDB from "@/config/database";
@@ -188,14 +186,16 @@ export async function GET() {
 
     // ✅ 1. Get session from NextAuth
     const session = await auth();
-    if (session?.user?.email) {
+    if (session?.user?.id) {
+      user = await User.findById(session.user.id);
+    } else if (session?.user?.email) {
       user = await User.findOne({ email: session.user.email });
     }
 
     // ✅ 2. Fallback: Check JWT cookie
     if (!user) {
       const cookieStore = await cookies();
-      const token = cookieStore.get("token")?.value;
+      const token = cookieStore.get("access_token")?.value || cookieStore.get("token")?.value;
       if (token) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         user = await User.findById(decoded.id);
@@ -234,10 +234,13 @@ export async function GET() {
         reference,
         trainee: trainee
           ? {
-              id: trainee._id,
-              fullName: trainee.fullName,
-              trainings: trainee.trainings,
-            }
+            id: trainee._id,
+            fullName: trainee.fullName,
+            trainings: trainee.trainings,
+            amountDue: trainee.amountDue,
+            paymentType: trainee.paymentType,
+            currentInstallment: trainee.currentInstallment,
+          }
           : null,
         hasPassword: !!user.password,
         provider: user.provider || "credentials",
@@ -249,4 +252,3 @@ export async function GET() {
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
