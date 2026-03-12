@@ -2,20 +2,21 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
-import { 
-    FiUsers, 
-    FiCreditCard, 
-    FiBookOpen, 
-    FiCalendar, 
-    FiSettings, 
+import {
+    FiUsers,
+    FiCreditCard,
+    FiBookOpen,
+    FiCalendar,
+    FiSettings,
     FiMenu,
     FiX,
     FiMessageCircle,
-    FiMail
+    FiMail,
+    FiStar
 } from "react-icons/fi"
-import {FaFolderOpen, FaGraduationCap} from "react-icons/fa"
+import { FaFolderOpen, FaGraduationCap } from "react-icons/fa"
 
-export default function AdminLayout({ children }){
+export default function AdminLayout({ children }) {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -28,7 +29,7 @@ export default function AdminLayout({ children }){
                 setIsCollapsed(true)
             }
         }
-        
+
         checkMobile()
         window.addEventListener('resize', checkMobile)
         return () => window.removeEventListener('resize', checkMobile)
@@ -46,6 +47,7 @@ export default function AdminLayout({ children }){
         { href: "/admin/update-courses", icon: FiBookOpen, label: "Courses" },
         { href: "/admin/schedule", icon: FiCalendar, label: "Schedules" },
         { href: "/admin/resources", icon: FaFolderOpen, label: "Resources" },
+        { href: "/admin/reviews", icon: FiStar, label: "Reviews" },
         { href: "/admin/newsletter", icon: FiMail, label: "Newsletter" },
         { href: "/admin/chat", icon: FiMessageCircle, label: "Support Chat" },
         { href: "/admin/settings", icon: FiSettings, label: "Settings" }
@@ -57,10 +59,10 @@ export default function AdminLayout({ children }){
         }
     }
 
-    return(
+    return (
         <div className="flex min-h-screen bg-gray-50">
             {/* Mobile Menu Button */}
-            <button 
+            <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden fixed top-4 left-4 z-50 p-2 bg-[#1F2937] text-white rounded-lg shadow-lg"
                 aria-label="Toggle mobile menu"
@@ -72,9 +74,8 @@ export default function AdminLayout({ children }){
 
             {/* Sidebar */}
             <aside className={`
-                ${isMobile 
-                    ? `fixed top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-30 ${
-                        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                ${isMobile
+                    ? `fixed top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-30 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                     }`
                     : `${isCollapsed ? 'w-16' : 'w-64'} fixed top-[64px] left-0 h-[calc(100vh-64px)]`
                 } 
@@ -87,7 +88,7 @@ export default function AdminLayout({ children }){
                         </div>
                     )}
                     {isMobile ? (
-                        <button 
+                        <button
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
                             aria-label="Close mobile menu"
@@ -95,7 +96,7 @@ export default function AdminLayout({ children }){
                             <FiX size={20} />
                         </button>
                     ) : (
-                        <button 
+                        <button
                             onClick={() => setIsCollapsed(!isCollapsed)}
                             className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
                             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -104,15 +105,15 @@ export default function AdminLayout({ children }){
                         </button>
                     )}
                 </div>
-                
+
                 <nav className="flex-1 py-4 overflow-y-auto">
                     <div className="space-y-1 px-3">
                         {menuItems.map((item) => {
                             const Icon = item.icon
                             const isActive = pathname === item.href
-                            
+
                             return (
-                                <Link 
+                                <Link
                                     key={item.href}
                                     href={item.href}
                                     onClick={() => {
@@ -123,8 +124,8 @@ export default function AdminLayout({ children }){
                                     }}
                                     className={`
                                         flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200
-                                        ${isActive 
-                                            ? 'bg-[#FE9900] text-[#002B5B] font-semibold shadow-lg' 
+                                        ${isActive
+                                            ? 'bg-[#FE9900] text-[#002B5B] font-semibold shadow-lg'
                                             : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                                         }
                                         ${isCollapsed && !isMobile ? 'justify-center' : ''}
@@ -145,10 +146,10 @@ export default function AdminLayout({ children }){
             {/* Main Content */}
             <main className={`
                 flex-1 p-3 sm:p-4 md:p-6 transition-all duration-300 ease-in-out
-                ${isMobile 
-                    ? 'ml-0 mt-16' 
-                    : isCollapsed 
-                        ? 'ml-16' 
+                ${isMobile
+                    ? 'ml-0 mt-16'
+                    : isCollapsed
+                        ? 'ml-16'
                         : 'ml-64'
                 }
             `}>

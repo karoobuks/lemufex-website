@@ -186,10 +186,12 @@ export async function GET() {
 
     // ✅ 1. Get session from NextAuth
     const session = await auth();
-    if (session?.user?.id) {
-      user = await User.findById(session.user.id);
-    } else if (session?.user?.email) {
+
+    // Prioritize email lookup as it's more stable across providers
+    if (session?.user?.email) {
       user = await User.findOne({ email: session.user.email });
+    } else if (session?.user?.id) {
+      try { user = await User.findById(session.user.id); } catch (e) { }
     }
 
     // ✅ 2. Fallback: Check JWT cookie
@@ -237,7 +239,6 @@ export async function GET() {
             id: trainee._id,
             fullName: trainee.fullName,
             trainings: trainee.trainings,
-            amountDue: trainee.amountDue,
             paymentType: trainee.paymentType,
             currentInstallment: trainee.currentInstallment,
           }

@@ -1,48 +1,72 @@
-import { NextResponse } from 'next/server';
-import connectDB from '@/config/database';
-import Review from '@/models/Review';
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import connectedDB from "@/config/database";
+import Review from "@/models/Review";
+import User from "@/models/User"; // Ensure User model is registered for population
 
+/**
+ * GET /api/reviews
+ * Fetches all approved reviews for public display.
+ */
 export async function GET() {
   try {
-    await connectDB();
-    const reviews = await Review.find({ isApproved: true })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .select('name rating comment serviceType createdAt');
-    
+    await connectedDB();
+
+    // Fetch only reviews with the status 'approved'
+    const reviews = await Review.find({ status: "approved" })
+      .populate({
+        path: "userId",
+        model: User,
+        select: "firstName lastName image", // Select only the fields you need for display
+      })
+      .sort({ createdAt: -1 }) // Show the newest reviews first
+      .limit(10) // Optional: limit the number of reviews shown
+      .lean();
+
     return NextResponse.json({ reviews });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("API Error fetching approved reviews:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch reviews" },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(req) {
+/**
+ * POST /api/reviews
+ * Allows authenticated users to submit a review.
+ */
+export async function POST(request) {
   try {
     const session = await auth();
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { rating, comment, serviceType } = await req.json();
+    await connectedDB();
 
-    if (!rating || !comment || !serviceType) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    const { rating, comment, serviceType } = await request.json();
 
-    await connectDB();
+    const name = session.user.name || `${session.user.firstName} ${session.user.lastName}`;
 
-    const review = await Review.create({
-      userId: session.user.id,
-      name: session.user.firstName + ' ' + (session.user.lastName || ''),
+    const newReview = await Review.create({
+      user: session.user.id,
+      name: (name && name !== "undefined undefined") ? name : "Anonymous", // Fallback if name is missing
       email: session.user.email,
       rating,
       comment,
-      serviceType
+      serviceType: serviceType || "general",
+      status: "pending", // Reviews must be approved by admin
     });
 
-    return NextResponse.json({ message: 'Review submitted for approval', review }, { status: 201 });
+    return NextResponse.json({ message: "Review submitted", review: newReview }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("API Error submitting review:", error);
+    return NextResponse.json(
+      { error: "Failed to submit review" },
+      { status: 500 }
+    );
   }
 }

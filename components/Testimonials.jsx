@@ -160,7 +160,9 @@ export default function Testimonials() {
                 </div>
                 <p className="text-gray-700 mb-4 italic">"{review.comment}"</p>
                 <div className="border-t pt-4">
-                  <h4 className="font-semibold text-[#081C3C]">{review.name}</h4>
+                  <h4 className="font-semibold text-[#081C3C]">
+                    {review.user ? `${review.user.firstName} ${review.user.lastName}` : review.name}
+                  </h4>
                   <p className="text-xs text-gray-500 capitalize">{review.serviceType} Client</p>
                 </div>
               </div>
