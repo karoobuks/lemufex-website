@@ -270,9 +270,134 @@
 //   }
 // }
 
+// import { NextResponse } from "next/server";
+// import { render } from "@react-email/render";
+// import nodemailer from "nodemailer";
+// import connectedDB from "@/config/database";
+// import Newsletter from "@/models/Newsletter";
+// import WelcomeEmail from "@/components/email/WelcomeEmail";
+// import { sendEmail } from "@/utils/mailer";
+
+// export async function POST(req) {
+//   try {
+//     const { email, name } = await req.json();
+
+//     if (!email || !email.includes("@")) {
+//       return NextResponse.json({ message: "Invalid email address" }, { status: 400 });
+//     }
+
+//     await connectedDB();
+
+//     let subscriber = await Newsletter.findOne({ email });
+
+//     // If the user already exists, reactivate if unsubscribed
+//     if (subscriber) {
+//       if (subscriber.status === "unsubscribed") {
+//         subscriber.status = "active";
+//         subscriber.unsubscribedAt = null;
+//         await subscriber.save();
+//       } else {
+//         return NextResponse.json({ message: "Already subscribed" }, { status: 400 });
+//       }
+//     } else {
+//       subscriber = await Newsletter.create({
+//         email,
+//         name: name || email.split("@")[0],
+//       });
+//     }
+
+//     // --- Generate Unsubscribe Link ---
+//     const unsubscribeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe?token=${subscriber.unsubscribeToken}`;
+
+//     // --- 1. Notify Admin ---
+//     await sendEmail(
+//       process.env.ADMIN_EMAIL || "you@example.com",
+//       "📩 New Newsletter Signup",
+//       `<p>New subscriber: <strong>${email}</strong></p>`
+//     );
+
+//     // --- 2. Send Welcome Email with Unsubscribe Link ---
+//     const emailHtml = await render(
+//       <WelcomeEmail
+//         userName={name || email.split("@")[0]}
+//         unsubscribeUrl={unsubscribeUrl}
+//       />
+//     );
+
+//     const transporter = nodemailer.createTransport({
+//       host: "smtp.gmail.com",
+//       port: 587,
+//       secure: false,
+//       auth: {
+//         user: "gmail",
+//         pass: process.env.STMP_PASS, // Resend SMTP key
+//       },
+//     });
+
+//     await transporter.sendMail({
+//       from: process.env.RESEND_DOMAIN
+//         ? `support@${process.env.RESEND_DOMAIN}`
+//         : "onboarding@resend.dev",
+//       to: email,
+//       subject: "Welcome to Lemufex Newsletter 🎉",
+//       html: emailHtml,
+//     });
+
+//     return NextResponse.json({
+//       message: "Subscription successful! Check your email for confirmation.",
+//     });
+//   } catch (err) {
+//     console.error("Newsletter error:", err);
+//     return NextResponse.json({ message: "Server error" }, { status: 500 });
+//   }
+// }
+
+// export async function GET(req) {
+//   try {
+//     await connectedDB();
+
+//     const { search, page = 1, limit = 10 } = Object.fromEntries(req.nextUrl.searchParams);
+
+//     const query = search
+//       ? {
+//           $or: [
+//             { email: { $regex: search, $options: "i" } },
+//             { name: { $regex: search, $options: "i" } },
+//           ],
+//         }
+//       : {};
+
+//     const total = await Newsletter.countDocuments(query);
+//     const subscribers = await Newsletter.find(query)
+//       .sort({ subscribedAt: -1 })
+//       .skip((page - 1) * limit)
+//       .limit(Number(limit))
+//       .select("email name status subscribedAt unsubscribedAt");
+
+//     const stats = {
+//       total,
+//       active: await Newsletter.countDocuments({ status: "active" }),
+//       unsubscribed: await Newsletter.countDocuments({ status: "unsubscribed" }),
+//     };
+
+//     return NextResponse.json({
+//       subscribers,
+//       stats,
+//       total,
+//       currentPage: Number(page),
+//       totalPages: Math.ceil(total / limit),
+//     });
+//   } catch (error) {
+//     console.error("Error fetching newsletter subscribers:", error);
+//     return NextResponse.json({ error: "Failed to fetch subscribers" }, { status: 500 });
+//   }
+// }
+
+
+
+
 import { NextResponse } from "next/server";
 import { render } from "@react-email/render";
-import nodemailer from "nodemailer";
 import connectedDB from "@/config/database";
 import Newsletter from "@/models/Newsletter";
 import WelcomeEmail from "@/components/email/WelcomeEmail";
@@ -283,21 +408,27 @@ export async function POST(req) {
     const { email, name } = await req.json();
 
     if (!email || !email.includes("@")) {
-      return NextResponse.json({ message: "Invalid email address" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid email address" },
+        { status: 400 }
+      );
     }
 
     await connectedDB();
 
     let subscriber = await Newsletter.findOne({ email });
 
-    // If the user already exists, reactivate if unsubscribed
+    // If already subscribed
     if (subscriber) {
       if (subscriber.status === "unsubscribed") {
         subscriber.status = "active";
         subscriber.unsubscribedAt = null;
         await subscriber.save();
       } else {
-        return NextResponse.json({ message: "Already subscribed" }, { status: 400 });
+        return NextResponse.json(
+          { message: "Already subscribed" },
+          { status: 400 }
+        );
       }
     } else {
       subscriber = await Newsletter.create({
@@ -306,17 +437,17 @@ export async function POST(req) {
       });
     }
 
-    // --- Generate Unsubscribe Link ---
+    // Generate unsubscribe link
     const unsubscribeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe?token=${subscriber.unsubscribeToken}`;
 
-    // --- 1. Notify Admin ---
+    // 1️⃣ Notify Admin
     await sendEmail(
-      process.env.RESEND_ADMIN_EMAIL || "you@example.com",
+      process.env.ADMIN_EMAIL,
       "📩 New Newsletter Signup",
       `<p>New subscriber: <strong>${email}</strong></p>`
     );
 
-    // --- 2. Send Welcome Email with Unsubscribe Link ---
+    // 2️⃣ Send Welcome Email
     const emailHtml = await render(
       <WelcomeEmail
         userName={name || email.split("@")[0]}
@@ -324,39 +455,33 @@ export async function POST(req) {
       />
     );
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.resend.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: "resend",
-        pass: process.env.EMAIL_PASS, // Resend SMTP key
-      },
-    });
-
-    await transporter.sendMail({
-      from: process.env.RESEND_DOMAIN
-        ? `support@${process.env.RESEND_DOMAIN}`
-        : "onboarding@resend.dev",
-      to: email,
-      subject: "Welcome to Lemufex Newsletter 🎉",
-      html: emailHtml,
-    });
+    await sendEmail(
+      email,
+      "Welcome to Lemufex Newsletter 🎉",
+      emailHtml
+    );
 
     return NextResponse.json({
       message: "Subscription successful! Check your email for confirmation.",
     });
+
   } catch (err) {
     console.error("Newsletter error:", err);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+
+    return NextResponse.json(
+      { message: "Server error" },
+      { status: 500 }
+    );
   }
 }
+
 
 export async function GET(req) {
   try {
     await connectedDB();
 
-    const { search, page = 1, limit = 10 } = Object.fromEntries(req.nextUrl.searchParams);
+    const { search, page = 1, limit = 10 } =
+      Object.fromEntries(req.nextUrl.searchParams);
 
     const query = search
       ? {
@@ -368,6 +493,7 @@ export async function GET(req) {
       : {};
 
     const total = await Newsletter.countDocuments(query);
+
     const subscribers = await Newsletter.find(query)
       .sort({ subscribedAt: -1 })
       .skip((page - 1) * limit)
@@ -387,8 +513,13 @@ export async function GET(req) {
       currentPage: Number(page),
       totalPages: Math.ceil(total / limit),
     });
+
   } catch (error) {
     console.error("Error fetching newsletter subscribers:", error);
-    return NextResponse.json({ error: "Failed to fetch subscribers" }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Failed to fetch subscribers" },
+      { status: 500 }
+    );
   }
 }

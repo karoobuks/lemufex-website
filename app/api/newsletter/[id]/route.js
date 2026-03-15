@@ -7,6 +7,11 @@ export async function PATCH(req, { params }) {
   try {
     await connectedDB();
     const { id } = params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+    }
+
     const subscriber = await Newsletter.findById(id);
 
     if (!subscriber) {
@@ -31,6 +36,11 @@ export async function DELETE(req, { params }) {
   try {
     await connectedDB();
     const { id } = params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+    }
+    
     const subscriber = await Newsletter.findByIdAndDelete(id);
 
     if (!subscriber) {
