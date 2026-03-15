@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectedDB from "@/config/database";
 import Newsletter from "@/models/Newsletter";
+import mongoose from "mongoose";
 
 // Toggle status (Active <-> Unsubscribed)
 export async function PATCH(req, { params }) {

@@ -5,32 +5,35 @@ import bcrypt from "bcryptjs"
 
 
 
-export async function POST(req){
-    try{
-      await connectedDB()
-    const {userId, password} = await req.json()
-    console.log("Received userId:", userId);
-    console.log("Received body:", { userId, password });
+export async function POST(req) {
+  try {
+    await connectedDB()
+    const { token, password } = await req.json()
 
-    const user = await User.findById(userId)
-
-     if (!userId || !password) {
-      return NextResponse.json({ message: "Missing fields" }, { status: 400 });
+    if (!token || !password) {
+      return NextResponse.json({ message: "Token and password are required" }, { status: 400 });
     }
 
-    if(!user){
-       return NextResponse.json({message:'User not found'}, {status:400})
+    // Find user by valid, unexpired token
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: 'Invalid or expired token' }, { status: 400 })
     }
 
     const hashed = await bcrypt.hash(password, 12)
     user.password = hashed;
-    
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
 
     await user.save()
 
-   return NextResponse.json({message:'Password reset successful'},{status:200})
-} catch (error) {
-    console.error(error);
+    return NextResponse.json({ message: 'Password reset successful' }, { status: 200 })
+  } catch (error) {
+    console.error("Reset password error:", error);
     return NextResponse.json(
       { message: "Server error" },
       { status: 500 }
