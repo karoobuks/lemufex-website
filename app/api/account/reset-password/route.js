@@ -107,14 +107,13 @@
 // app/api/account/reset-password/route.js
 
 import { NextResponse } from "next/server";
-import connectedDB from "@/config/database";
+import connectDB from "@/config/database";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 
 export async function POST(req) {
   try {
-    await connectedDB();
+    await connectDB();
 
     const { token, password } = await req.json();
 
@@ -125,16 +124,10 @@ export async function POST(req) {
       );
     }
 
-    // hash token to match DB stored token
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
-
-    // find user with valid token
+    // Find user by plain token — no hashing, must match what was saved in forgot-password
     const user = await User.findOne({
-      resetToken: hashedToken,
-      resetTokenExpiry: { $gt: Date.now() },
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() },
     });
 
     if (!user) {
@@ -144,16 +137,10 @@ export async function POST(req) {
       );
     }
 
-    // hash new password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // update password
-    user.password = hashedPassword;
-
-    // remove reset token fields
-    user.resetToken = undefined;
-    user.resetTokenExpiry = undefined;
-
+    // Hash and save new password
+    user.password = await bcrypt.hash(password, 12);
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
     await user.save();
 
     return NextResponse.json(
@@ -163,10 +150,6 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("Reset password error:", error);
-
-    return NextResponse.json(
-      { message: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
