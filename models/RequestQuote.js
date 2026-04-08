@@ -1,6 +1,5 @@
 import mongoose,{ Schema, models, model} from "mongoose";
 
-
 const RequestQuoteSchema = new Schema({
     name:{
         type:String,
@@ -10,7 +9,6 @@ const RequestQuoteSchema = new Schema({
     email:{
         type:String,
         required:[true, 'Please enter your email'],
-        unique:true,
     },
     phone:{
         type:String,
@@ -21,12 +19,12 @@ const RequestQuoteSchema = new Schema({
         required:true,
     },
     service:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Service'
+        type:String,
+        required:true,
+        trim:true,
     },
     options:{
         type:String,
-        required:true,
         trim:true,
     },
     image:{
@@ -34,10 +32,17 @@ const RequestQuoteSchema = new Schema({
     },
     status:{
         type:String,
-        enum:['pending', 'confirmed'],
+        enum:['pending', 'replied', 'closed'],
         default:'pending',
     },
-
+    adminReply:{
+        type:String,
+        default:null,
+    },
+    repliedAt:{
+        type:Date,
+        default:null,
+    },
 },{timestamps:true})
 
 const RequestQuote = models?.RequestQuote || model('RequestQuote', RequestQuoteSchema)

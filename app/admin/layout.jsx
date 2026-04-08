@@ -12,7 +12,8 @@ import {
     FiX,
     FiMessageCircle,
     FiMail,
-    FiStar
+    FiStar,
+    FiFileText
 } from "react-icons/fi"
 import { FaFolderOpen, FaGraduationCap } from "react-icons/fa"
 
@@ -48,6 +49,7 @@ export default function AdminLayout({ children }) {
         { href: "/admin/schedule", icon: FiCalendar, label: "Schedules" },
         { href: "/admin/resources", icon: FaFolderOpen, label: "Resources" },
         { href: "/admin/reviews", icon: FiStar, label: "Reviews" },
+        { href: "/admin/quotes", icon: FiFileText, label: "Quote Requests" },
         { href: "/admin/newsletter", icon: FiMail, label: "Newsletter" },
         { href: "/admin/chat", icon: FiMessageCircle, label: "Support Chat" },
         { href: "/admin/settings", icon: FiSettings, label: "Settings" }
