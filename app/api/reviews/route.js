@@ -1,72 +1,71 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/auth";
-import connectedDB from "@/config/database";
-import Review from "@/models/Review";
-import User from "@/models/User"; // Ensure User model is registered for population
+import { NextResponse } from 'next/server';
+import connectDB from '@/config/database';
+import Review from '@/models/Review';
+import User from '@/models/User';
+import Trainee from '@/models/Trainee';
+import { auth } from '@/auth';
 
-/**
- * GET /api/reviews
- * Fetches all approved reviews for public display.
- */
 export async function GET() {
   try {
-    await connectedDB();
-
-    // Fetch only reviews with the status 'approved'
-    const reviews = await Review.find({ status: "approved" })
-      .populate({
-        path: "userId",
-        model: User,
-        select: "firstName lastName image", // Select only the fields you need for display
-      })
-      .sort({ createdAt: -1 }) // Show the newest reviews first
-      .limit(10) // Optional: limit the number of reviews shown
-      .lean();
-
+    await connectDB();
+    const reviews = await Review.find({ isApproved: true })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .select('name rating comment serviceType createdAt');
+    
     return NextResponse.json({ reviews });
   } catch (error) {
-    console.error("API Error fetching approved reviews:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch reviews" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-/**
- * POST /api/reviews
- * Allows authenticated users to submit a review.
- */
-export async function POST(request) {
+export async function POST(req) {
   try {
     const session = await auth();
-
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectedDB();
+    const { rating, comment, serviceType } = await req.json();
 
-    const { rating, comment, serviceType } = await request.json();
+    if (!rating || !comment || !serviceType) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
 
-    const name = session.user.name || `${session.user.firstName} ${session.user.lastName}`;
+    await connectDB();
 
-    const newReview = await Review.create({
-      user: session.user.id,
-      name: (name && name !== "undefined undefined") ? name : "Anonymous", // Fallback if name is missing
+    // Try to get name from Trainee first, then fallback to User
+    let reviewerName = 'Anonymous';
+    
+    try {
+      const trainee = await Trainee.findOne({ user: session.user.id }).select('fullName');
+      if (trainee && trainee.fullName) {
+        reviewerName = trainee.fullName;
+      } else {
+        const user = await User.findById(session.user.id).select('username');
+        if (user && user.username) {
+          reviewerName = user.username;
+        } else if (session.user.email) {
+          // Extract name from email as last resort
+          reviewerName = session.user.email.split('@')[0];
+        }
+      }
+    } catch (err) {
+      console.log('Error getting user name:', err);
+      // Keep default 'Anonymous'
+    }
+
+    const review = await Review.create({
+      userId: session.user.id,
+      name: reviewerName,
       email: session.user.email,
       rating,
       comment,
-      serviceType: serviceType || "general",
-      status: "pending", // Reviews must be approved by admin
+      serviceType
     });
 
-    return NextResponse.json({ message: "Review submitted", review: newReview }, { status: 201 });
+    return NextResponse.json({ message: 'Review submitted for approval', review }, { status: 201 });
   } catch (error) {
-    console.error("API Error submitting review:", error);
-    return NextResponse.json(
-      { error: "Failed to submit review" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
