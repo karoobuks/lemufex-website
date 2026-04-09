@@ -100,35 +100,37 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Email content for admin (your inbox)
     const adminHtml = `
-      <h2>New Feedback Received</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Message:</strong></p>
-      <p>${message}</p>
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+        <div style="background:#081C3C;padding:24px;">
+          <h1 style="color:#FE9900;margin:0;font-size:20px;">Lemufex Engineering</h1>
+          <p style="color:#fff;margin:6px 0 0;font-size:13px;">New Contact Form Message</p>
+        </div>
+        <div style="padding:24px;">
+          <p style="margin:0 0 12px;"><strong>Name:</strong> ${name}</p>
+          <p style="margin:0 0 12px;"><strong>Email:</strong> ${email}</p>
+          <div style="background:#F9FAFB;border-left:4px solid #FE9900;padding:16px;border-radius:4px;">
+            <p style="margin:0 0 6px;font-weight:600;">Message:</p>
+            <p style="margin:0;color:#374151;">${message.replace(/\n/g, '<br/>')}</p>
+          </div>
+        </div>
+      </div>
     `;
 
-    // 1️⃣ Send feedback to admin
+    // Send to lemufex business email
     const sentToAdmin = await sendEmail(
-      "karoobuks@gmail.com", // replace with your inbox
-      "📩 New Customer Feedback",
+      "lemufexgroup@mail.com",
+      `\uD83D\uDCE9 New Contact Message from ${name}`,
       adminHtml
     );
 
-    // 2️⃣ Send acknowledgment to customer
+    // Send branded acknowledgement to customer
     const sentAck = await sendAcknowledgmentEmail(email, name);
 
-    // ✅ Response handling
-    if (sentToAdmin && sentAck) {
+    if (sentToAdmin) {
       return NextResponse.json({
         success: true,
-        msg: "Message sent successfully. An acknowledgment email has been sent to you!",
-      });
-    } else if (sentToAdmin && !sentAck) {
-      return NextResponse.json({
-        success: true,
-        msg: "Message sent successfully, but acknowledgment email failed.",
+        msg: "Message sent successfully! We'll get back to you soon.",
       });
     } else {
       return NextResponse.json(
@@ -137,7 +139,7 @@ export async function POST(req) {
       );
     }
   } catch (error) {
-    console.error("❌ Error sending emails:", error);
+    console.error("Contact form error:", error);
     return NextResponse.json(
       { success: false, msg: "Server error while sending email." },
       { status: 500 }

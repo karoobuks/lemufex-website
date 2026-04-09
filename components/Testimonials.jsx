@@ -106,7 +106,7 @@ export default function Testimonials() {
                 <select
                   value={serviceType}
                   onChange={(e) => setServiceType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] text-gray-900"
                 >
                   <option value="training">Training</option>
                   <option value="quote">Quote/Service</option>
@@ -123,7 +123,7 @@ export default function Testimonials() {
                   maxLength={500}
                   rows={4}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] resize-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] resize-none text-gray-900 placeholder:text-gray-400"
                 />
                 <p className="text-sm text-gray-500 mt-1">{comment.length}/500 characters</p>
               </div>

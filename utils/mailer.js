@@ -1,160 +1,6 @@
-
-// // utils/mailer.js
-// import nodemailer from "nodemailer";
-// import { Resend } from "resend";
-// import AcknowledgmentEmail from "@/components/email/AcknowledgementEmail";
-
-// // --- Nodemailer setup (for custom HTML emails) ---
-// export const transporter = nodemailer.createTransport({
-//   host: "smtp.resend.com",
-//   port: 587,
-//   secure: false, // TLS optional
-//   auth: {
-//     user: "resend",
-//     pass: process.env.EMAIL_PASS, // your Resend API key as SMTP password
-//   },
-// });
-
-// // Generic email sender (works for admin/internal notifications)
-// export async function sendEmail(to, subject, htmlContent) {
-//   try {
-//     const info = await transporter.sendMail({
-//       from: process.env.RESEND_DOMAIN
-//         ? `support@${process.env.RESEND_DOMAIN}` // ✅ production sender
-//         : "onboarding@resend.dev", // ✅ sandbox fallback
-//       to,
-//       subject,
-//       html: htmlContent,
-//     });
-
-//     console.log("Message sent: %s", info.messageId);
-//     return true;
-//   } catch (err) {
-//     console.error("Error sending email:", err);
-//     return false;
-//   }
-// }
-
-// // --- Resend setup (for acknowledgment emails) ---
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
-// // Auto acknowledgment email using React template
-// export async function sendAcknowledgmentEmail(to, name) {
-//   try {
-//     const sender = process.env.RESEND_DOMAIN
-//       ? `support@${process.env.RESEND_DOMAIN}`
-//       : "onboarding@resend.dev";
-
-//     const { error } = await resend.emails.send({
-//       from: sender,
-//       to: process.env.RESEND_DOMAIN ? to : process.env.RESEND_TEST_EMAIL, 
-//       subject: "We’ve received your message ✔",
-//       react: <AcknowledgmentEmail name={name} />,
-//     });
-
-//     if (error) {
-//       console.error("Resend error:", error);
-//       return false;
-//     }
-
-//     console.log(`Acknowledgment sent to: ${to}`);
-//     return true;
-//   } catch (err) {
-//     console.error("Send error:", err);
-//     return false;
-//   }
-// }
-
-
-// export async function sendPasswordResetEmail(to, resetUrl) {
-//   try {
-//     await transporter.sendMail({
-//       from: process.env.RESEND_DOMAIN
-//         ? `support@${process.env.RESEND_DOMAIN}`
-//         : "onboarding@resend.dev",
-//       to,
-//       subject: "Password Reset Request",
-//       html: `
-//         <p>Hello,</p>
-//         <p>You requested to reset your password.</p>
-//         <p>Click the link below to reset it:</p>
-//         <a href="${resetUrl}">${resetUrl}</a>
-//         <p>This link expires in 15 minutes.</p>
-//       `,
-//     });
-
-//     console.log("Password reset email sent to:", to);
-//     return true;
-//   } catch (err) {
-//     console.error("Password reset email error:", err);
-//     return false;
-//   }
-// }
-
-
-
-// // utils/mailer.js
-// import nodemailer from "nodemailer";
-
-// // Gmail SMTP transporter
-// export const transporter = nodemailer.createTransport({
-//   host: process.env.SMTP_HOST,
-//   port: Number(process.env.SMTP_PORT),
-//   secure: false, // TLS handled automatically
-//   auth: {
-//     user: process.env.SMTP_USER,
-//     pass: process.env.SMTP_PASS,
-//   },
-// });
-
-// // Password reset email sender
-// export async function sendPasswordResetEmail(to, resetUrl) {
-//   try {
-//     const info = await transporter.sendMail({
-//       from: process.env.ADMIN_EMAIL,
-//       to,
-//       subject: "Reset Your Lemufex Password",
-//       html: `
-//         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-//           <h2 style="color:#2563eb;">Reset Your Password</h2>
-//           <p>You requested to reset your password.</p>
-//           <p>Click the button below to reset it:</p>
-
-//           <a href="${resetUrl}"
-//             style="display:inline-block;padding:12px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;margin:20px 0;">
-//             Reset Password
-//           </a>
-
-//           <p>Or copy and paste this link into your browser:</p>
-//           <p style="word-break: break-all;">${resetUrl}</p>
-
-//           <p style="font-size:14px;color:#666;">
-//             This link will expire in 15 minutes.
-//           </p>
-
-//           <p style="font-size:14px;color:#666;">
-//             If you didn't request this, you can safely ignore this email.
-//           </p>
-//         </div>
-//       `,
-//     });
-
-//     console.log("Password reset email sent:", info.messageId);
-//     return true;
-
-//   } catch (error) {
-//     console.error("Email error:", error);
-//     return false;
-//   }
-// }
-
-
-
-
 // utils/mailer.js
 import nodemailer from "nodemailer";
 
-// Gmail SMTP transporter
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
@@ -165,14 +11,11 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | Generic Email Sender
 |--------------------------------------------------------------------------
-| Used for internal notifications, admin alerts, etc
 */
-
 export async function sendEmail(to, subject, htmlContent) {
   try {
     const info = await transporter.sendMail({
@@ -181,23 +24,19 @@ export async function sendEmail(to, subject, htmlContent) {
       subject,
       html: htmlContent,
     });
-
     console.log("Email sent:", info.messageId);
     return true;
-
   } catch (error) {
     console.error("Email sending error:", error);
     return false;
   }
 }
 
-
 /*
 |--------------------------------------------------------------------------
 | Password Reset Email
 |--------------------------------------------------------------------------
 */
-
 export async function sendPasswordResetEmail(to, resetUrl) {
   try {
     const info = await transporter.sendMail({
@@ -205,94 +44,77 @@ export async function sendPasswordResetEmail(to, resetUrl) {
       to,
       subject: "Reset Your Lemufex Password",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-          <h2 style="color:#2563eb;">Reset Your Password</h2>
-
-          <p>You requested to reset your password.</p>
-
-          <p>Click the button below to reset it:</p>
-
-          <a href="${resetUrl}"
-            style="display:inline-block;
-                   padding:12px 20px;
-                   background:#2563eb;
-                   color:#fff;
-                   text-decoration:none;
-                   border-radius:6px;
-                   margin:20px 0;">
-            Reset Password
-          </a>
-
-          <p>Or copy and paste this link into your browser:</p>
-
-          <p style="word-break: break-all;">
-            ${resetUrl}
-          </p>
-
-          <p style="font-size:14px;color:#666;">
-            This link will expire in 15 minutes.
-          </p>
-
-          <p style="font-size:14px;color:#666;">
-            If you didn't request this, you can safely ignore this email.
-          </p>
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+          <div style="background:#081C3C;padding:32px 24px;text-align:center;">
+            <h1 style="color:#FE9900;margin:0;font-size:24px;">Lemufex Engineering</h1>
+            <p style="color:#fff;margin:8px 0 0;font-size:14px;">Password Reset Request</p>
+          </div>
+          <div style="padding:32px 24px;">
+            <p style="color:#374151;font-size:16px;">Hello,</p>
+            <p style="color:#374151;">You requested to reset your password. Click the button below to proceed:</p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${resetUrl}"
+                style="display:inline-block;padding:14px 32px;background:#FE9900;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px;">
+                Reset Password
+              </a>
+            </div>
+            <p style="color:#374151;">Or copy and paste this link into your browser:</p>
+            <p style="word-break:break-all;color:#6B7280;font-size:13px;">${resetUrl}</p>
+            <div style="background:#FFF7ED;border-left:4px solid #FE9900;padding:12px 16px;border-radius:4px;margin-top:24px;">
+              <p style="margin:0;color:#92400E;font-size:13px;">This link will expire in <strong>15 minutes</strong>. If you did not request this, you can safely ignore this email.</p>
+            </div>
+            <p style="color:#374151;margin-top:24px;">Best regards,<br/><strong style="color:#081C3C;">Lemufex Engineering Team</strong></p>
+          </div>
+          <div style="background:#F3F4F6;padding:16px 24px;text-align:center;">
+            <p style="color:#9CA3AF;font-size:12px;margin:0;">&copy; ${new Date().getFullYear()} Lemufex Engineering. All rights reserved.</p>
+          </div>
         </div>
       `,
     });
-
     console.log("Password reset email sent:", info.messageId);
     return true;
-
   } catch (error) {
     console.error("Password reset email error:", error);
     return false;
   }
 }
 
-
 /*
 |--------------------------------------------------------------------------
-| Acknowledgment Email
+| Acknowledgement Email
 |--------------------------------------------------------------------------
-| Used when a user submits a form (contact, quote, etc)
+| Sent to user after contact form or quote submission
 */
-
 export async function sendAcknowledgmentEmail(to, name) {
   try {
     const info = await transporter.sendMail({
       from: process.env.ADMIN_EMAIL,
       to,
-      subject: "We’ve received your message ✔",
+      subject: "We've received your message \u2013 Lemufex Engineering",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-          <h2 style="color:#2563eb;">Hello ${name},</h2>
-
-          <p>
-            Thank you for contacting <strong>Lemufex</strong>.
-          </p>
-
-          <p>
-            We have received your message and our team will respond shortly.
-          </p>
-
-          <p>
-            If your inquiry is urgent, please reply to this email.
-          </p>
-
-          <br/>
-
-          <p style="color:#666;font-size:14px;">
-            — Lemufex Support Team
-          </p>
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+          <div style="background:#081C3C;padding:32px 24px;text-align:center;">
+            <h1 style="color:#FE9900;margin:0;font-size:24px;">Lemufex Engineering</h1>
+            <p style="color:#fff;margin:8px 0 0;font-size:14px;">Message Received</p>
+          </div>
+          <div style="padding:32px 24px;">
+            <p style="color:#374151;font-size:16px;">Dear <strong>${name}</strong>,</p>
+            <p style="color:#374151;">Thank you for reaching out to <strong>Lemufex Engineering</strong>. We have received your message and our team will get back to you as soon as possible.</p>
+            <div style="background:#FFF7ED;border-left:4px solid #FE9900;padding:16px;border-radius:4px;margin:24px 0;">
+              <p style="margin:0;color:#92400E;font-size:14px;">We typically respond within <strong>24&ndash;48 hours</strong>. If your inquiry is urgent, please reply directly to this email.</p>
+            </div>
+            <p style="color:#374151;margin-top:24px;">Best regards,<br/><strong style="color:#081C3C;">Lemufex Engineering Team</strong></p>
+          </div>
+          <div style="background:#F3F4F6;padding:16px 24px;text-align:center;">
+            <p style="color:#9CA3AF;font-size:12px;margin:0;">&copy; ${new Date().getFullYear()} Lemufex Engineering. All rights reserved.</p>
+          </div>
         </div>
       `,
     });
-
-    console.log("Acknowledgment email sent:", info.messageId);
+    console.log("Acknowledgement email sent:", info.messageId);
     return true;
-
   } catch (error) {
-    console.error("Acknowledgment email error:", error);
+    console.error("Acknowledgement email error:", error);
     return false;
   }
 }

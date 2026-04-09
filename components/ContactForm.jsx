@@ -52,7 +52,7 @@ export default function ContactForm() {
             value={formData.name}
             placeholder="Enter your full name"
             onChange={handleChange}
-            className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all"
+            className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
             required
           />
         </div>
@@ -67,7 +67,7 @@ export default function ContactForm() {
             value={formData.email}
             placeholder="your.email@example.com"
             onChange={handleChange}
-            className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all"
+            className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
             required
           />
         </div>
@@ -82,7 +82,7 @@ export default function ContactForm() {
             value={formData.message}
             placeholder="Tell us about your project or inquiry..."
             onChange={handleChange}
-            className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all resize-none"
+            className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all resize-none text-gray-900 placeholder:text-gray-400"
             required
           />
         </div>
