@@ -1,104 +1,71 @@
-// import { NextResponse } from "next/server";
-// import Newsletter from "@/models/Newsletter";
-// import { Resend } from "resend";
-
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
-// export async function POST(req) {
-//   try {
-//     const { subject, message } = await req.json();
-//     if (!subject || !message)
-//       return NextResponse.json({ message: "Missing fields" }, { status: 400 });
-
-//     // Fetch active subscribers
-//     const subscribers = await Newsletter.find({ status: "active" });
-//     if (subscribers.length === 0)
-//       return NextResponse.json({ message: "No active subscribers" }, { status: 404 });
-
-//     // Send emails
-//     await Promise.all(
-//       subscribers.map(async (sub) => {
-//         await resend.emails.send({
-//           from: "Your Name <newsletter@yourdomain.com>", // Use your verified domain email
-//           to: sub.email,
-//           subject,
-//           html: `<div style="font-family:sans-serif;">
-//                   <h2>${subject}</h2>
-//                   <p>${message}</p>
-//                   <hr/>
-//                   <p style="font-size:12px;color:#555;">
-//                     You’re receiving this email because you subscribed to our newsletter.
-//                   </p>
-//                 </div>`,
-//         });
-//       })
-//     );
-
-//     return NextResponse.json({ success: true });
-//   } catch (error) {
-//     console.error("Newsletter send error:", error);
-//     return NextResponse.json({ message: "Error sending newsletter" }, { status: 500 });
-//   }
-// }
-
-
 import { NextResponse } from "next/server";
-import connectedDB from "@/config/database";
+import connectDB from "@/config/database";
 import Newsletter from "@/models/Newsletter";
 import { sendEmail } from "@/utils/mailer";
 
 export async function POST(req) {
   try {
-    await connectedDB();
+    await connectDB();
 
     const { subject, message } = await req.json();
 
     if (!subject || !message) {
-      return NextResponse.json(
-        { message: "Missing fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Missing fields" }, { status: 400 });
     }
 
-    // Fetch active subscribers
     const subscribers = await Newsletter.find({ status: "active" });
 
     if (subscribers.length === 0) {
-      return NextResponse.json(
-        { message: "No active subscribers" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "No active subscribers" }, { status: 404 });
     }
 
-    // Send emails to all subscribers
+    const year = new Date().getFullYear();
+
     await Promise.all(
-      subscribers.map(async (sub) => {
-        const htmlContent = `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
-            <h2>${subject}</h2>
+      subscribers.map((sub) => {
+        const html = `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <div style="background:#081C3C;padding:32px 24px;text-align:center;">
+              <h1 style="color:#FE9900;margin:0;font-size:24px;">Lemufex Engineering</h1>
+              <p style="color:#fff;margin:8px 0 0;font-size:14px;">Newsletter</p>
+            </div>
 
-            <p>${message}</p>
+            <div style="background:#ffffff;padding:32px 24px;">
+              <h2 style="color:#081C3C;font-size:20px;margin:0 0 16px;">${subject}</h2>
+              <div style="color:#374151;font-size:15px;line-height:1.7;">
+                ${message.replace(/\n/g, "<br/>")}
+              </div>
 
-            <hr/>
+              <div style="text-align:center;margin:32px 0;">
+                <a href="${process.env.NEXT_PUBLIC_DOMAIN || "https://lemufex.com"}"
+                  style="display:inline-block;padding:14px 32px;background:#FE9900;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px;">
+                  Visit Our Website
+                </a>
+              </div>
 
-            <p style="font-size:12px;color:#555;">
-              You're receiving this email because you subscribed to the Lemufex newsletter.
-            </p>
+              <p style="color:#374151;font-size:15px;margin-top:24px;">
+                Best regards,<br/>
+                <strong style="color:#081C3C;">Lemufex Engineering Team</strong>
+              </p>
+            </div>
+
+            <div style="background:#F3F4F6;padding:16px 24px;text-align:center;border-top:1px solid #e5e7eb;">
+              <p style="color:#9CA3AF;font-size:12px;margin:0 0 6px;">
+                &copy; ${year} Lemufex Engineering. All rights reserved.
+              </p>
+              <p style="color:#9CA3AF;font-size:12px;margin:0;">
+                You are receiving this because you subscribed to the Lemufex newsletter.
+              </p>
+            </div>
           </div>
         `;
-
-        await sendEmail(sub.email, subject, htmlContent);
+        return sendEmail(sub.email, subject, html);
       })
     );
 
-    return NextResponse.json({ success: true });
-
+    return NextResponse.json({ success: true, sent: subscribers.length });
   } catch (error) {
     console.error("Newsletter send error:", error);
-
-    return NextResponse.json(
-      { message: "Error sending newsletter" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error sending newsletter" }, { status: 500 });
   }
 }
