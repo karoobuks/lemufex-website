@@ -53,6 +53,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     callbacks: {
+        async signIn({ user, account, profile }) {
+            await connectedDB();
+
+            if (account?.provider === "google") {
+                let existingUser = await User.findOne({ email: profile.email });
+
+                if (!existingUser) {
+                    const [firstName, ...rest] = profile.name?.split(" ") || ["User"];
+                    existingUser = await User.create({
+                        email: profile.email,
+                        firstName,
+                        lastName: rest.join(" "),
+                        image: profile.picture,
+                        role: "user",
+                        isTrainee: false,
+                    });
+                }
+
+                if (existingUser.isTrainee) {
+                    let trainee = await Trainee.findOne({ user: existingUser._id });
+                    if (!trainee) {
+                        await Trainee.create({ user: existingUser._id, trainings: [] });
+                    }
+                }
+
+                user.id = existingUser._id.toString();
+                user.role = existingUser.role;
+                user.isTrainee = existingUser.isTrainee;
+            }
+
+            return true;
+        },
+
         async jwt({ token, user }) {
             await connectedDB();
 
