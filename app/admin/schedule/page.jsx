@@ -1,303 +1,364 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import TypingDots from "@/components/loaders/TypingDots";
-import { 
-  FiCalendar, 
-  FiUpload, 
-  FiFile, 
-  FiTrash2, 
-  FiEye,
-  FiClock,
-  FiCheck
-} from "react-icons/fi";
+import { FiCalendar, FiPlus, FiTrash2, FiEdit2, FiSave, FiRefreshCw, FiCheck, FiX } from "react-icons/fi";
 
-export default function AdminSchedulesPage() {
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const EMPTY_SLOT = { time: "", topic: "", course: "", instructor: "", notes: "" };
+
+export default function AdminSchedulePage() {
   const { data: session, status } = useSession();
-  const [items, setItems] = useState([]);
-  const [title, setTitle] = useState("");
-  const [file, setFile] = useState(null);
+  const [timetable, setTimetable] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/admin/schedules", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          setItems(json.data || []);
-        } else {
-          toast.error("Failed to load schedules");
-        }
-      } catch (error) {
-        toast.error("Error loading schedules");
-      } finally {
-        setLoading(false);
+  // Draft state for the builder
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftDays, setDraftDays] = useState(
+    DAYS.map((d) => ({ day: d, slots: [] }))
+  );
+
+  // Which slot is being edited: { dayIdx, slotIdx } | null
+  const [editing, setEditing] = useState(null);
+  const [editValues, setEditValues] = useState({ ...EMPTY_SLOT });
+
+  // Mode: "view" | "new" | "edit"
+  const [mode, setMode] = useState("view");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/schedules", { cache: "no-store" });
+      const json = await res.json();
+      if (json.data) {
+        setTimetable(json.data);
+        setDraftTitle(json.data.title);
+        setDraftDays(
+          DAYS.map((d) => {
+            const found = json.data.days.find((x) => x.day === d);
+            return { day: d, slots: found?.slots || [] };
+          })
+        );
       }
-    };
-    load();
+    } catch (_e) {
+      toast.error("Failed to load timetable");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+  useEffect(() => { load(); }, [load]);
+
+  // ── Slot helpers ──────────────────────────────────────────────
+  const addSlot = (dayIdx) => {
+    const updated = draftDays.map((d, i) =>
+      i === dayIdx ? { ...d, slots: [...d.slots, { ...EMPTY_SLOT }] } : d
+    );
+    setDraftDays(updated);
+    const slotIdx = updated[dayIdx].slots.length - 1;
+    setEditing({ dayIdx, slotIdx });
+    setEditValues({ ...EMPTY_SLOT });
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
-    }
+  const removeSlot = (dayIdx, slotIdx) => {
+    setDraftDays((prev) =>
+      prev.map((d, i) =>
+        i === dayIdx ? { ...d, slots: d.slots.filter((_, si) => si !== slotIdx) } : d
+      )
+    );
+    if (editing?.dayIdx === dayIdx && editing?.slotIdx === slotIdx) setEditing(null);
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!title || !file) {
-      toast.error("Please provide both title and file");
-      return;
-    }
-    setPosting(true);
+  const startEdit = (dayIdx, slotIdx) => {
+    setEditing({ dayIdx, slotIdx });
+    setEditValues({ ...draftDays[dayIdx].slots[slotIdx] });
+  };
 
+  const saveSlot = () => {
+    const { dayIdx, slotIdx } = editing;
+    setDraftDays((prev) =>
+      prev.map((d, i) =>
+        i === dayIdx
+          ? { ...d, slots: d.slots.map((s, si) => (si === slotIdx ? { ...editValues } : s)) }
+          : d
+      )
+    );
+    setEditing(null);
+  };
+
+  // ── API actions ───────────────────────────────────────────────
+  const handleSet = async () => {
+    if (!draftTitle.trim()) return toast.error("Please enter a timetable title");
+    setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append("title", title);
-      fd.append("file", file);
-
-      const res = await fetch("/api/admin/schedules", { method: "POST", body: fd });
-      if (res.ok) {
-        const { data } = await res.json();
-        setItems((prev) => [data, ...prev]);
-        setTitle("");
-        setFile(null);
-        toast.success("Schedule uploaded successfully!");
-      } else {
-        toast.error("Upload failed");
-      }
-    } catch (error) {
-      toast.error("Error uploading schedule");
+      const res = await fetch("/api/admin/schedules", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: draftTitle, days: draftDays }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed");
+      setTimetable(json.data);
+      setMode("view");
+      toast.success(timetable ? "Timetable reset successfully!" : "Timetable created!");
+    } catch (e) {
+      toast.error(e.message);
     } finally {
-      setPosting(false);
+      setSaving(false);
     }
   };
 
-  const del = async (id) => {
-    if (!window.confirm("Delete this schedule?")) return;
-    
+  const handleSaveEdits = async () => {
+    if (!draftTitle.trim()) return toast.error("Please enter a timetable title");
+    setSaving(true);
     try {
-      const res = await fetch(`/api/admin/schedules/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setItems((prev) => prev.filter((i) => i._id !== id));
-        toast.success("Schedule deleted successfully");
-      } else {
-        toast.error("Failed to delete schedule");
+      // Save title first
+      await fetch("/api/admin/schedules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: draftTitle }),
+      });
+      // Save each day
+      for (const d of draftDays) {
+        await fetch("/api/admin/schedules", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ day: d.day, slots: d.slots }),
+        });
       }
-    } catch (error) {
-      toast.error("Error deleting schedule");
+      await load();
+      setMode("view");
+      toast.success("Timetable updated!");
+    } catch (_e) {
+      toast.error("Failed to save changes");
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <TypingDots />
+  // ── Guards ────────────────────────────────────────────────────
+  if (status === "loading") return <div className="flex items-center justify-center min-h-[400px]"><TypingDots /></div>;
+  if (session?.user?.role !== "admin") return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center">
+        <div className="text-red-500 text-6xl mb-4">🚫</div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Unauthorized Access</h2>
       </div>
-    );
-  }
-  
-  if (session?.user?.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">🚫</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Unauthorized Access</h2>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-        </div>
-      </div>
-    );
-  }
+    </div>
+  );
 
+  // ── Render ────────────────────────────────────────────────────
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-[#FE9900] rounded-lg">
-            <FiCalendar className="text-white" size={20} />
-          </div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Schedule Management</h1>
-        </div>
-        <p className="text-sm sm:text-base text-gray-600">Upload and manage training schedules with automatic versioning</p>
-      </div>
-
-      {/* Upload Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center gap-2 mb-4 sm:mb-6">
-          <FiUpload className="text-[#FE9900]" size={18} />
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900">Upload New Schedule</h2>
-        </div>
-        
-        <form onSubmit={submit} className="space-y-4 sm:space-y-6">
-          {/* Title Input */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FiFile size={14} />
-              Schedule Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., April 2024 Training Schedule"
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent transition-all duration-200 placeholder:text-gray-600 placeholder:font-medium"
-              required
-            />
-          </div>
-
-          {/* File Upload */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FiFile size={14} />
-              Upload PDF File
-            </label>
-            <div 
-              className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-8 text-center transition-all duration-200 ${
-                dragActive 
-                  ? 'border-[#FE9900] bg-orange-50' 
-                  : file 
-                    ? 'border-green-400 bg-green-50'
-                    : 'border-gray-300 hover:border-[#FE9900] hover:bg-orange-50'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                required
-              />
-              <div className="space-y-2 sm:space-y-3">
-                {file ? (
-                  <>
-                    <FiCheck className="mx-auto text-green-500" size={32} />
-                    <div>
-                      <p className="text-sm sm:text-lg font-medium text-green-700 break-all">{file.name}</p>
-                      <p className="text-xs sm:text-sm text-green-600">File selected successfully</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <FiUpload className="mx-auto text-gray-400" size={32} />
-                    <div>
-                      <p className="text-sm sm:text-lg font-medium text-gray-700">Drop your PDF file here</p>
-                      <p className="text-xs sm:text-sm text-gray-500">or click to browse</p>
-                    </div>
-                  </>
-                )}
-              </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#FE9900] rounded-lg">
+              <FiCalendar className="text-white" size={20} />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Timetable Management</h1>
+              <p className="text-sm text-gray-500">Set, reset, or edit the weekly training timetable</p>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={posting || !title || !file}
-              className="flex items-center justify-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base w-full sm:w-auto"
-            >
-              {posting ? (
-                <TypingDots />
-              ) : (
-                <>
-                  <FiUpload size={16} />
-                  <span className="hidden sm:inline">Upload Schedule</span>
-                  <span className="sm:hidden">Upload</span>
-                </>
+          {mode === "view" && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => { setMode("new"); setDraftTitle(""); setDraftDays(DAYS.map((d) => ({ day: d, slots: [] }))); }}
+                className="flex items-center gap-2 bg-[#FE9900] hover:bg-[#E5890A] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                <FiRefreshCw size={14} /> {timetable ? "Reset Timetable" : "Create Timetable"}
+              </button>
+              {timetable && (
+                <button
+                  onClick={() => setMode("edit")}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                >
+                  <FiEdit2 size={14} /> Edit Timetable
+                </button>
               )}
-            </button>
-          </div>
-        </form>
+            </div>
+          )}
+
+          {(mode === "new" || mode === "edit") && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={mode === "new" ? handleSet : handleSaveEdits}
+                disabled={saving}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                {saving ? <TypingDots /> : <><FiSave size={14} /> {mode === "new" ? "Set Timetable" : "Save Changes"}</>}
+              </button>
+              <button
+                onClick={() => { setMode("view"); load(); }}
+                className="flex items-center gap-2 border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                <FiX size={14} /> Cancel
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Schedules List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-        <div className="flex items-center gap-2 mb-4 sm:mb-6">
-          <FiClock className="text-[#FE9900]" size={18} />
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Schedule History</h3>
+      {/* Title input (edit/new mode) */}
+      {(mode === "new" || mode === "edit") && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Timetable Title</label>
+          <input
+            type="text"
+            value={draftTitle}
+            onChange={(e) => setDraftTitle(e.target.value)}
+            placeholder="e.g. May 2025 Training Schedule"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-sm"
+          />
         </div>
-        
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <TypingDots />
-          </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-12">
-            <FiCalendar className="mx-auto text-gray-400 mb-4" size={48} />
-            <p className="text-gray-500 text-lg">No schedules uploaded yet.</p>
-            <p className="text-gray-400 text-sm">Upload your first schedule to get started!</p>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <TypingDots />
+        </div>
+      )}
+
+      {/* View mode — read-only timetable */}
+      {!loading && mode === "view" && (
+        !timetable ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <FiCalendar className="mx-auto text-gray-300 mb-4" size={56} />
+            <p className="text-gray-500 text-lg font-medium">No timetable set yet.</p>
+            <p className="text-gray-400 text-sm mt-1">Click "Create Timetable" to get started.</p>
           </div>
         ) : (
-          <div className="space-y-3 sm:space-y-4">
-            {items.map((s) => (
-              <div key={s._id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow duration-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FE9900] text-white flex-shrink-0">
-                        v{s.versionNumber}
-                      </span>
-                      <h4 className="text-sm sm:text-lg font-semibold text-gray-900 truncate">{s.title}</h4>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-                      <FiClock size={12} />
-                      <span className="truncate">Uploaded {new Date(s.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <a
-                      href={s.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-xs sm:text-sm"
-                    >
-                      <FiEye size={14} />
-                      <span className="hidden sm:inline">View</span>
-                    </a>
-                    <button
-                      onClick={() => del(s._id)}
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200 text-xs sm:text-sm"
-                    >
-                      <FiTrash2 size={14} />
-                      <span className="hidden sm:inline">Delete</span>
-                    </button>
-                  </div>
-                </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">{timetable.title}</h2>
+                <p className="text-xs text-gray-400">Version {timetable.version} · Last updated {new Date(timetable.updatedAt).toLocaleDateString()}</p>
               </div>
-            ))}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600 w-28">Day</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Time</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Topic</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Course</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Instructor</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {timetable.days.map((d) =>
+                    d.slots.length === 0 ? (
+                      <tr key={d.day} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-semibold text-[#002D62]">{d.day}</td>
+                        <td colSpan={5} className="px-4 py-3 text-gray-400 italic">No sessions</td>
+                      </tr>
+                    ) : (
+                      d.slots.map((slot, si) => (
+                        <tr key={`${d.day}-${si}`} className="hover:bg-gray-50">
+                          {si === 0 && (
+                            <td className="px-4 py-3 font-semibold text-[#002D62] align-top" rowSpan={d.slots.length}>
+                              {d.day}
+                            </td>
+                          )}
+                          <td className="px-4 py-3 text-gray-700">{slot.time || "—"}</td>
+                          <td className="px-4 py-3 text-gray-900 font-medium">{slot.topic || "—"}</td>
+                          <td className="px-4 py-3 text-gray-700">{slot.course || "—"}</td>
+                          <td className="px-4 py-3 text-gray-700">{slot.instructor || "—"}</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{slot.notes || "—"}</td>
+                        </tr>
+                      ))
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        )}
-      </div>
+        )
+      )}
+
+      {/* Edit / New mode — builder */}
+      {!loading && (mode === "new" || mode === "edit") && (
+        <div className="space-y-4">
+          {draftDays.map((d, dayIdx) => (
+            <div key={d.day} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 bg-[#002D62]">
+                <h3 className="text-white font-semibold">{d.day}</h3>
+                <button
+                  onClick={() => addSlot(dayIdx)}
+                  className="flex items-center gap-1 text-xs bg-[#FE9900] hover:bg-[#E5890A] text-white px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <FiPlus size={12} /> Add Session
+                </button>
+              </div>
+
+              {d.slots.length === 0 ? (
+                <p className="px-4 py-4 text-sm text-gray-400 italic">No sessions — click "Add Session" to add one.</p>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {d.slots.map((slot, slotIdx) => {
+                    const isEditing = editing?.dayIdx === dayIdx && editing?.slotIdx === slotIdx;
+                    return (
+                      <div key={slotIdx} className="p-4">
+                        {isEditing ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {["time", "topic", "course", "instructor", "notes"].map((field) => (
+                              <div key={field}>
+                                <label className="block text-xs font-medium text-gray-500 mb-1 capitalize">{field}</label>
+                                <input
+                                  type="text"
+                                  value={editValues[field]}
+                                  onChange={(e) => setEditValues((v) => ({ ...v, [field]: e.target.value }))}
+                                  placeholder={field === "time" ? "e.g. 9:00 AM - 11:00 AM" : ""}
+                                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#FE9900] focus:border-transparent"
+                                />
+                              </div>
+                            ))}
+                            <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-3">
+                              <button onClick={saveSlot} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                                <FiCheck size={12} /> Save
+                              </button>
+                              <button onClick={() => setEditing(null)} className="flex items-center gap-1 border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                                <FiX size={12} /> Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-1 flex-1 text-sm">
+                              <div><span className="text-xs text-gray-400">Time</span><p className="text-gray-800">{slot.time || "—"}</p></div>
+                              <div><span className="text-xs text-gray-400">Topic</span><p className="text-gray-900 font-medium">{slot.topic || "—"}</p></div>
+                              <div><span className="text-xs text-gray-400">Course</span><p className="text-gray-800">{slot.course || "—"}</p></div>
+                              <div><span className="text-xs text-gray-400">Instructor</span><p className="text-gray-800">{slot.instructor || "—"}</p></div>
+                              <div><span className="text-xs text-gray-400">Notes</span><p className="text-gray-500 text-xs">{slot.notes || "—"}</p></div>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button onClick={() => startEdit(dayIdx, slotIdx)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                <FiEdit2 size={14} />
+                              </button>
+                              <button onClick={() => removeSlot(dayIdx, slotIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                <FiTrash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

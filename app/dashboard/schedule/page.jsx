@@ -1,106 +1,99 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
+import { FiCalendar } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import TypingDots from "@/components/loaders/TypingDots";
 
 export default function SchedulePage() {
-  const [latest, setLatest] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [timetable, setTimetable] = useState(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const load = async () => {
-      const [l, h] = await Promise.all([
-        fetch("/api/schedules/latest", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/schedules", { cache: "no-store" }).then((r) => r.json()),
-      ]);
-      setLatest(l.data || null);
-      setHistory(h.data || []);
-    };
-    load();
+    fetch("/api/schedule", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((json) => setTimetable(json.data || null))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
       <header className="bg-[#002D62] text-white px-6 py-10 shadow">
         <h1 className="text-3xl font-bold">Training Schedule</h1>
-        <p className="text-[#E5E7EB]">Always up to date • Versioned history</p>
+        <p className="text-[#E5E7EB]">Weekly timetable set by your admin</p>
       </header>
-         <div>    
-   <button 
-          onClick={() => router.back()}
-           className="inline-flex items-center gap-2 text-[#002B5B] hover:text-[#FE9900] mb-4 transition-colors"
-        >
-   <FaArrowLeft /> Back to Dashboard
-    </button>
-    </div> 
-      <main className="max-w-6xl mx-auto p-6 grid lg:grid-cols-3 gap-6">
-        
-        {/* Latest */}
-        <section className="lg:col-span-2 bg-white rounded-2xl shadow p-6">
-          <h2 className="text-xl font-semibold text-[#002D62] mb-4">Latest Schedule</h2>
-          {!latest ? (
-            <p className="text-gray-600">No schedule uploaded yet.</p>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <p className="font-medium text-gray-800">
-                  v{latest.versionNumber} — {latest.title}
-                </p>
-                <a
-                  href={latest.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-[#FE9900] hover:bg-[#e88500] text-white px-4 py-2 rounded-lg"
-                >
-                  Open PDF
-                </a>
-              </div>
-              <div className="aspect-[4/3] w-full border rounded-xl overflow-hidden bg-[#E5E7EB]">
-                <iframe
-                  title="Latest Schedule"
-                  src={latest.fileUrl}
-                  className="w-full h-full"
-                />
-              </div>
-            </>
-          )}
-        </section>
 
-        {/* Version history */}
-        <aside className="bg-white rounded-2xl shadow p-6">
-          <h3 className="text-lg font-semibold text-[#002D62] mb-4">Version History</h3>
-          {history.length === 0 ? (
-            <p className="text-gray-600">Nothing here yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {history.map((s) => (
-                <li key={s._id} className="border rounded-xl p-3 hover:bg-[#F5F5F5]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        v{s.versionNumber} — {s.title}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(s.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <a
-                      href={s.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#FE9900] font-semibold"
-                    >
-                      View
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
-      </main>
+      <div className="max-w-6xl mx-auto p-6">
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 text-[#002B5B] hover:text-[#FE9900] mb-6 transition-colors"
+        >
+          <FaArrowLeft /> Back to Dashboard
+        </button>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <TypingDots />
+          </div>
+        ) : !timetable ? (
+          <div className="bg-white rounded-2xl shadow p-12 text-center">
+            <FiCalendar className="mx-auto text-gray-300 mb-4" size={56} />
+            <p className="text-gray-500 text-lg font-medium">No timetable available yet.</p>
+            <p className="text-gray-400 text-sm mt-1">Check back later — your admin will set it soon.</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow overflow-hidden">
+            <div className="p-5 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-[#002D62]">{timetable.title}</h2>
+              <p className="text-xs text-gray-400 mt-1">
+                Version {timetable.version} · Last updated {new Date(timetable.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600 w-28">Day</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Time</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Topic</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Course</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Instructor</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {timetable.days.map((d) =>
+                    d.slots.length === 0 ? (
+                      <tr key={d.day} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-semibold text-[#002D62]">{d.day}</td>
+                        <td colSpan={5} className="px-4 py-3 text-gray-400 italic">No sessions</td>
+                      </tr>
+                    ) : (
+                      d.slots.map((slot, si) => (
+                        <tr key={`${d.day}-${si}`} className="hover:bg-gray-50">
+                          {si === 0 && (
+                            <td className="px-4 py-3 font-semibold text-[#002D62] align-top" rowSpan={d.slots.length}>
+                              {d.day}
+                            </td>
+                          )}
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{slot.time || "—"}</td>
+                          <td className="px-4 py-3 text-gray-900 font-medium">{slot.topic || "—"}</td>
+                          <td className="px-4 py-3 text-gray-700">{slot.course || "—"}</td>
+                          <td className="px-4 py-3 text-gray-700">{slot.instructor || "—"}</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{slot.notes || "—"}</td>
+                        </tr>
+                      ))
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

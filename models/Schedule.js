@@ -1,23 +1,27 @@
 import mongoose from "mongoose";
 
-const ScheduleSchema = new mongoose.Schema(
+const SlotSchema = new mongoose.Schema({
+  time: { type: String, default: "" },       // e.g. "9:00 AM - 11:00 AM"
+  topic: { type: String, default: "" },
+  course: { type: String, default: "" },
+  instructor: { type: String, default: "" },
+  notes: { type: String, default: "" },
+}, { _id: true });
+
+const DaySchema = new mongoose.Schema({
+  day: { type: String, required: true },     // "Monday" … "Sunday"
+  slots: { type: [SlotSchema], default: [] },
+}, { _id: false });
+
+const TimetableSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    fileUrl: { type: String, required: true },
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    versionNumber: { type: Number, default: 1, index: true },
+    days: { type: [DaySchema], default: [] },
+    setBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    version: { type: Number, default: 1 },
   },
   { timestamps: true }
 );
 
-// Auto-increment version by counting docs
-ScheduleSchema.pre("save", async function (next) {
-  if (this.isNew && !this.versionNumber) {
-    const Model = mongoose.model("Schedule");
-    const last = await Model.findOne().sort({ versionNumber: -1 }).select("versionNumber");
-    this.versionNumber = last ? last.versionNumber + 1 : 1;
-  }
-  next();
-});
-
-export default mongoose.models.Schedule || mongoose.model("Schedule", ScheduleSchema);
+export default mongoose.models.Timetable ||
+  mongoose.model("Timetable", TimetableSchema);

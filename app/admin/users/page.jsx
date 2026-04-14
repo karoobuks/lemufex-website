@@ -18,7 +18,9 @@ import {
   FiX,
   FiPhone,
   FiMapPin,
-  FiShield
+  FiShield,
+  FiUserCheck,
+  FiUserX
 } from "react-icons/fi"
 
 export default function UsersPage() {
@@ -33,6 +35,7 @@ export default function UsersPage() {
     const [selectedUser, setSelectedUser] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [imageViewer, setImageViewer] = useState({ show: false, src: '', name: '' })
+    const [roleChanging, setRoleChanging] = useState(null)
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -110,6 +113,26 @@ export default function UsersPage() {
 
     const closeImageViewer = () => {
         setImageViewer({ show: false, src: '', name: '' })
+    }
+
+    const changeRole = async (userId, newRole) => {
+        setRoleChanging(userId)
+        try {
+            const res = await fetch('/api/admin/users/role', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, role: newRole }),
+            })
+            const data = await res.json()
+            if (!res.ok) return toast.error(data.error || 'Failed to change role')
+            setUsers((prev) => prev.map((u) => u._id === userId ? { ...u, role: newRole } : u))
+            if (selectedUser?._id === userId) setSelectedUser((u) => ({ ...u, role: newRole }))
+            toast.success(`User role updated to ${newRole}`)
+        } catch (_e) {
+            toast.error('Error changing role')
+        } finally {
+            setRoleChanging(null)
+        }
     }
 
     if (status === "loading") {
@@ -285,13 +308,34 @@ export default function UsersPage() {
                                         day: 'numeric',
                                         year: 'numeric'
                                     })}</span>
-                                    <button 
-                                        onClick={() => viewUser(user)}
-                                        className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200 p-2"
-                                    >
-                                        <FiEye size={14} />
-                                        View
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => viewUser(user)}
+                                            className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200 p-2"
+                                        >
+                                            <FiEye size={14} />
+                                            View
+                                        </button>
+                                        {session?.user?.isSuperAdmin && !user.isSuperAdmin && (
+                                            user.role === 'admin' ? (
+                                                <button
+                                                    disabled={roleChanging === user._id}
+                                                    onClick={() => changeRole(user._id, 'user')}
+                                                    className="flex items-center gap-1 text-red-500 p-2 disabled:opacity-50"
+                                                >
+                                                    <FiUserX size={14} /> Demote
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    disabled={roleChanging === user._id}
+                                                    onClick={() => changeRole(user._id, 'admin')}
+                                                    className="flex items-center gap-1 text-green-600 p-2 disabled:opacity-50"
+                                                >
+                                                    <FiUserCheck size={14} /> Make Admin
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -385,13 +429,38 @@ export default function UsersPage() {
                                             })}
                                         </td>
                                         <td className="px-3 lg:px-6 py-3 lg:py-4 text-xs sm:text-sm font-medium">
-                                            <button 
-                                                onClick={() => viewUser(user)}
-                                                className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200 p-1"
-                                            >
-                                                <FiEye size={14} />
-                                                <span className="hidden sm:inline">View</span>
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => viewUser(user)}
+                                                    className="flex items-center gap-1 text-[#FE9900] hover:text-[#E5890A] transition-colors duration-200 p-1"
+                                                >
+                                                    <FiEye size={14} />
+                                                    <span className="hidden sm:inline">View</span>
+                                                </button>
+                                                {session?.user?.isSuperAdmin && !user.isSuperAdmin && (
+                                                    user.role === 'admin' ? (
+                                                        <button
+                                                            disabled={roleChanging === user._id}
+                                                            onClick={() => changeRole(user._id, 'user')}
+                                                            className="flex items-center gap-1 text-red-500 hover:text-red-700 transition-colors p-1 disabled:opacity-50"
+                                                            title="Remove admin"
+                                                        >
+                                                            <FiUserX size={14} />
+                                                            <span className="hidden sm:inline">Demote</span>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            disabled={roleChanging === user._id}
+                                                            onClick={() => changeRole(user._id, 'admin')}
+                                                            className="flex items-center gap-1 text-green-600 hover:text-green-800 transition-colors p-1 disabled:opacity-50"
+                                                            title="Make admin"
+                                                        >
+                                                            <FiUserCheck size={14} />
+                                                            <span className="hidden sm:inline">Make Admin</span>
+                                                        </button>
+                                                    )
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -591,6 +660,25 @@ export default function UsersPage() {
 
                         {/* Modal Footer */}
                         <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
+                            {session?.user?.isSuperAdmin && selectedUser && !selectedUser.isSuperAdmin && (
+                                selectedUser.role === 'admin' ? (
+                                    <button
+                                        disabled={roleChanging === selectedUser._id}
+                                        onClick={() => changeRole(selectedUser._id, 'user')}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 w-full sm:w-auto"
+                                    >
+                                        <FiUserX size={14} /> Remove Admin
+                                    </button>
+                                ) : (
+                                    <button
+                                        disabled={roleChanging === selectedUser._id}
+                                        onClick={() => changeRole(selectedUser._id, 'admin')}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 w-full sm:w-auto"
+                                    >
+                                        <FiUserCheck size={14} /> Make Admin
+                                    </button>
+                                )
+                            )}
                             <button
                                 onClick={closeModal}
                                 className="px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base w-full sm:w-auto"

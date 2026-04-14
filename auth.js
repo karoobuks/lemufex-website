@@ -104,6 +104,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
                 token.role = dbUser.role;
                 token.isTrainee = !!dbUser.isTrainee;
+                token.isSuperAdmin = !!dbUser.isSuperAdmin;
 
                 if (dbUser.isTrainee) {
                     const trainee = await Trainee.findOne({ user: dbUser._id }).lean();
@@ -120,6 +121,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.role = token.role;
                 session.user.email = token.email;
                 session.user.isTrainee = token.isTrainee;
+                session.user.isSuperAdmin = token.isSuperAdmin;
                 session.user.trainings = token.trainings || [];
             }
 

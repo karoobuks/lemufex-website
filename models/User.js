@@ -16,6 +16,15 @@ const UserSchema = new Schema({
   password: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ["user", "admin", "trainee"],
+    default: "user",
+  },
+  isSuperAdmin: {
+    type: Boolean,
+    default: false,
+  },
   sessionVersion: {
     type: Number,
     default: 0,
