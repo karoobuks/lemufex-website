@@ -208,13 +208,13 @@ export default function AdminSchedulePage() {
       {/* Title input (edit/new mode) */}
       {(mode === "new" || mode === "edit") && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Timetable Title</label>
+          <label className="block text-sm font-medium text-[#002D62] mb-1">Timetable Title</label>
           <input
             type="text"
             value={draftTitle}
             onChange={(e) => setDraftTitle(e.target.value)}
             placeholder="e.g. May 2025 Training Schedule"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-sm"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FE9900] focus:border-transparent text-sm text-[#002D62] placeholder:text-gray-400 bg-white"
           />
         </div>
       )}
@@ -312,13 +312,13 @@ export default function AdminSchedulePage() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {["time", "topic", "course", "instructor", "notes"].map((field) => (
                               <div key={field}>
-                                <label className="block text-xs font-medium text-gray-500 mb-1 capitalize">{field}</label>
+                                <label className="block text-xs font-semibold text-[#002D62] mb-1 capitalize">{field}</label>
                                 <input
                                   type="text"
                                   value={editValues[field]}
                                   onChange={(e) => setEditValues((v) => ({ ...v, [field]: e.target.value }))}
-                                  placeholder={field === "time" ? "e.g. 9:00 AM - 11:00 AM" : ""}
-                                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#FE9900] focus:border-transparent"
+                                  placeholder={field === "time" ? "e.g. 9:00 AM - 11:00 AM" : `Enter ${field}`}
+                                  className="w-full px-3 py-1.5 border border-[#002D62] rounded-lg text-sm text-[#002D62] placeholder:text-gray-400 bg-white focus:ring-2 focus:ring-[#FE9900] focus:border-[#FE9900]"
                                 />
                               </div>
                             ))}
@@ -334,11 +334,11 @@ export default function AdminSchedulePage() {
                         ) : (
                           <div className="flex items-start justify-between gap-4">
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-1 flex-1 text-sm">
-                              <div><span className="text-xs text-gray-400">Time</span><p className="text-gray-800">{slot.time || "—"}</p></div>
-                              <div><span className="text-xs text-gray-400">Topic</span><p className="text-gray-900 font-medium">{slot.topic || "—"}</p></div>
-                              <div><span className="text-xs text-gray-400">Course</span><p className="text-gray-800">{slot.course || "—"}</p></div>
-                              <div><span className="text-xs text-gray-400">Instructor</span><p className="text-gray-800">{slot.instructor || "—"}</p></div>
-                              <div><span className="text-xs text-gray-400">Notes</span><p className="text-gray-500 text-xs">{slot.notes || "—"}</p></div>
+                              <div><span className="text-xs font-semibold text-[#FE9900]">Time</span><p className="text-[#002D62] font-medium">{slot.time || "—"}</p></div>
+                              <div><span className="text-xs font-semibold text-[#FE9900]">Topic</span><p className="text-[#002D62] font-semibold">{slot.topic || "—"}</p></div>
+                              <div><span className="text-xs font-semibold text-[#FE9900]">Course</span><p className="text-[#002D62] font-medium">{slot.course || "—"}</p></div>
+                              <div><span className="text-xs font-semibold text-[#FE9900]">Instructor</span><p className="text-[#002D62] font-medium">{slot.instructor || "—"}</p></div>
+                              <div><span className="text-xs font-semibold text-[#FE9900]">Notes</span><p className="text-gray-600 text-xs">{slot.notes || "—"}</p></div>
                             </div>
                             <div className="flex gap-2 flex-shrink-0">
                               <button onClick={() => startEdit(dayIdx, slotIdx)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
